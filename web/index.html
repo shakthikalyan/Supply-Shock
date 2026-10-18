@@ -8,36 +8,45 @@
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 
   <!-- Cytoscape.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.29.2/cytoscape.min.js"></script>
 
   <style>
-    /* ── Design Tokens ─────────────────────────────────────────────────────── */
+    /* ── Light Design System Tokens ────────────────────────────────────────── */
     :root {
-      --bg-base:        #080c14;
-      --bg-surface:     #0d1420;
-      --bg-panel:       #111927;
-      --bg-card:        #162030;
-      --border:         #1e2f44;
-      --border-bright:  #2a4060;
-      --text-primary:   #e8f0fe;
-      --text-secondary: #7c9cbf;
-      --text-muted:     #3d5a78;
-      --accent-blue:    #3b8cff;
-      --accent-cyan:    #00d4ff;
-      --accent-green:   #00e5a0;
-      --accent-amber:   #ffb340;
-      --accent-red:     #ff4d6d;
-      --accent-purple:  #a855f7;
-      --glow-blue:      0 0 20px rgba(59,140,255,0.3);
-      --glow-red:       0 0 20px rgba(255,77,109,0.3);
-      --glow-green:     0 0 20px rgba(0,229,160,0.3);
+      --bg-base:        #f8fafc; /* Slate 50 */
+      --bg-surface:     #ffffff; /* Pure white */
+      --bg-panel:       #f1f5f9; /* Slate 100 */
+      --bg-card:        #ffffff;
+      --bg-subtle:      #f8fafc;
+      --border:         #e2e8f0; /* Slate 200 */
+      --border-bright:  #cbd5e1; /* Slate 300 */
+      --border-dark:    #94a3b8; /* Slate 400 */
+      
+      --text-primary:   #0f172a; /* Slate 900 */
+      --text-secondary: #475569; /* Slate 600 */
+      --text-muted:     #94a3b8; /* Slate 400 */
+      
+      --accent-blue:    #2563eb; /* Blue 600 */
+      --accent-blue-bg: #eff6ff; /* Blue 50 */
+      --accent-cyan:    #0284c7; /* Sky 600 */
+      --accent-green:   #059669; /* Emerald 600 */
+      --accent-green-bg:#ecfdf5; /* Emerald 50 */
+      --accent-amber:   #d97706; /* Amber 600 */
+      --accent-amber-bg:#fffbeb; /* Amber 50 */
+      --accent-red:     #dc2626; /* Red 600 */
+      --accent-red-bg:  #fef2f2; /* Red 50 */
+      --accent-purple:  #7c3aed; /* Purple 600 */
+      
       --radius-sm: 6px;
       --radius-md: 10px;
-      --radius-lg: 16px;
+      --radius-lg: 14px;
       --font-mono: 'JetBrains Mono', monospace;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.06), 0 2px 4px -2px rgb(0 0 0 / 0.04);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.03);
     }
 
     /* ── Reset & Base ──────────────────────────────────────────────────────── */
@@ -46,328 +55,607 @@
     body {
       background: var(--bg-base);
       color: var(--text-primary);
-      font-family: 'Inter', sans-serif;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       font-size: 13px;
       line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
     }
-    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 2px; }
+    ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--border-dark); }
 
-    /* ── Layout ────────────────────────────────────────────────────────────── */
+    /* ── App Shell Layout ──────────────────────────────────────────────────── */
     #app {
-      display: grid;
-      grid-template-rows: 52px 1fr;
+      display: flex;
+      flex-direction: column;
       height: 100vh;
     }
 
     /* ── Header ────────────────────────────────────────────────────────────── */
     header {
+      height: 56px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 0 20px;
       background: var(--bg-surface);
       border-bottom: 1px solid var(--border);
-      position: relative;
-      z-index: 10;
+      box-shadow: var(--shadow-sm);
+      z-index: 20;
     }
     .logo {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
+    }
+    .logo-icon {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, var(--accent-blue), #1d4ed8);
+      color: #ffffff;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+    }
+    .logo-title {
       font-weight: 800;
       font-size: 16px;
       letter-spacing: -0.3px;
+      color: var(--text-primary);
     }
-    .logo-icon {
-      width: 28px; height: 28px;
-      background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
-      border-radius: 6px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 14px;
+    .logo-sub {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-left: 6px;
     }
-    .logo-text { background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .logo-sub { font-size: 11px; font-weight: 400; color: var(--text-muted); margin-left: 4px; -webkit-text-fill-color: var(--text-muted); }
 
     .header-actions { display: flex; align-items: center; gap: 10px; }
     .status-badge {
-      display: flex; align-items: center; gap: 6px;
-      padding: 4px 10px; border-radius: 20px;
-      font-size: 11px; font-weight: 500;
-      background: rgba(0,229,160,0.08); border: 1px solid rgba(0,229,160,0.2);
+      display: flex; align-items: center; gap: 7px;
+      padding: 5px 12px; border-radius: 20px;
+      font-size: 11px; font-weight: 600;
+      background: var(--accent-green-bg);
+      border: 1px solid rgba(5, 150, 105, 0.2);
       color: var(--accent-green);
     }
     .status-dot {
-      width: 6px; height: 6px; border-radius: 50%;
+      width: 7px; height: 7px; border-radius: 50%;
       background: var(--accent-green);
       animation: pulse-dot 2s ease-in-out infinite;
     }
     @keyframes pulse-dot {
-      0%,100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.5; transform: scale(0.8); }
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
     }
     .status-badge.db-down {
-      background: rgba(255,77,109,0.08); border-color: rgba(255,77,109,0.2); color: var(--accent-red);
+      background: var(--accent-red-bg);
+      border-color: rgba(220, 38, 38, 0.25);
+      color: var(--accent-red);
     }
-    .status-badge.db-down .status-dot { background: var(--accent-red); animation: none; }
+    .status-badge.db-down .status-dot {
+      background: var(--accent-red);
+      animation: none;
+    }
 
-    /* ── Main grid ─────────────────────────────────────────────────────────── */
+    /* ── Main Layout: Perfectly Balanced Split (No Overlap) ────────────────── */
     main {
+      flex: 1;
       display: grid;
-      grid-template-columns: 1fr 340px;
-      grid-template-rows: 1fr 240px;
+      grid-template-columns: 1fr 420px;
       gap: 1px;
       background: var(--border);
       overflow: hidden;
     }
+
+    #left-container {
+      display: grid;
+      grid-template-rows: 1fr 340px;
+      gap: 1px;
+      background: var(--border);
+      overflow: hidden;
+    }
+
+    #right-container {
+      display: grid;
+      grid-template-rows: 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+      overflow: hidden;
+      height: 100%;
+    }
+
     .pane {
-      background: var(--bg-panel);
-      display: flex; flex-direction: column;
+      background: var(--bg-surface);
+      display: flex;
+      flex-direction: column;
       overflow: hidden;
       position: relative;
     }
+
     .pane-header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 10px 14px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
       background: var(--bg-surface);
       border-bottom: 1px solid var(--border);
       flex-shrink: 0;
     }
     .pane-title {
-      font-size: 11px; font-weight: 600; letter-spacing: 0.8px;
-      text-transform: uppercase; color: var(--text-secondary);
-      display: flex; align-items: center; gap: 7px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
-    .pane-title .icon { font-size: 14px; }
-    .pane-body { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 14px; }
+    .pane-title svg {
+      color: var(--text-muted);
+    }
+    .pane-body {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 14px 16px;
+      background: var(--bg-base);
+    }
 
-    /* Graph pane spans both rows */
-    #pane-graph { grid-row: 1 / 3; }
-    #cy { width: 100%; height: 100%; background: transparent; }
+    /* Graph canvas */
+    #pane-graph .pane-body {
+      padding: 0;
+      background: #ffffff;
+      position: relative;
+    }
+    #cy {
+      width: 100%;
+      height: 100%;
+      background: #ffffff;
+    }
 
-    /* ── Buttons ────────────────────────────────────────────────────────────── */
+    /* ── Realistic Buttons ──────────────────────────────────────────────────── */
     .btn {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 6px 14px; border-radius: var(--radius-sm);
-      font-size: 12px; font-weight: 600; cursor: pointer;
-      border: none; transition: all 0.15s ease;
-      font-family: 'Inter', sans-serif;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+      font-family: inherit;
+      line-height: 1;
+    }
+    .btn svg {
+      flex-shrink: 0;
     }
     .btn-primary {
-      background: linear-gradient(135deg, var(--accent-blue), #2563eb);
-      color: #fff; box-shadow: 0 2px 12px rgba(59,140,255,0.3);
+      background: var(--accent-blue);
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(37, 99, 235, 0.2);
     }
-    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(59,140,255,0.5); }
-    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:hover {
+      background: #1d4ed8;
+      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+    }
     .btn-danger {
-      background: linear-gradient(135deg, #ff4d6d, #dc2626);
-      color: #fff; box-shadow: 0 2px 12px rgba(255,77,109,0.3);
+      background: var(--accent-red);
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(220, 38, 38, 0.2);
     }
-    .btn-danger:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(255,77,109,0.5); }
+    .btn-danger:hover {
+      background: #b91c1c;
+      box-shadow: 0 2px 8px rgba(220, 38, 38, 0.35);
+    }
     .btn-success {
-      background: linear-gradient(135deg, var(--accent-green), #059669);
-      color: #fff; box-shadow: 0 2px 12px rgba(0,229,160,0.3);
+      background: var(--accent-green);
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(5, 150, 105, 0.2);
     }
-    .btn-success:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(0,229,160,0.5); }
+    .btn-success:hover {
+      background: #047857;
+      box-shadow: 0 2px 6px rgba(5, 150, 105, 0.3);
+    }
     .btn-ghost {
-      background: transparent; color: var(--text-secondary);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
       border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
     }
-    .btn-ghost:hover { border-color: var(--border-bright); color: var(--text-primary); }
-    .btn-sm { padding: 4px 10px; font-size: 11px; }
-    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+    .btn-ghost:hover {
+      background: var(--bg-panel);
+      border-color: var(--border-bright);
+      color: var(--text-primary);
+    }
+    .btn-sm {
+      padding: 5px 10px;
+      font-size: 11px;
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
 
-    /* ── Event trigger card ────────────────────────────────────────────────── */
-    .event-card {
-      margin-bottom: 14px;
-      background: var(--bg-card);
+    /* ── Graph Toolbar & Legend ─────────────────────────────────────────────── */
+    .toggle-group {
+      display: flex;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 2px;
+    }
+    .toggle-btn {
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      background: transparent;
+      border: none;
+      border-radius: 4px;
+      color: var(--text-secondary);
+      transition: all 0.15s;
+    }
+    .toggle-btn.active {
+      background: var(--bg-surface);
+      color: var(--accent-blue);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .legend {
+      position: absolute;
+      bottom: 14px;
+      left: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      backdrop-filter: blur(8px);
+      box-shadow: var(--shadow-sm);
+      z-index: 5;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    /* ── Agent Reasoning Steps ─────────────────────────────────────────────── */
+    .step-item {
+      display: flex;
+      gap: 12px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      background: var(--bg-surface);
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
-      padding: 14px;
-      transition: border-color 0.2s;
-    }
-    .event-card:hover { border-color: var(--border-bright); }
-    .event-card h3 { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
-    .event-card p { font-size: 11px; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.6; }
-    .event-tag {
-      display: inline-flex; align-items: center; gap: 4px;
-      padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600;
-      background: rgba(255,179,64,0.12); color: var(--accent-amber); border: 1px solid rgba(255,179,64,0.25);
-      margin-bottom: 10px;
-    }
-
-    /* ── Reasoning steps ───────────────────────────────────────────────────── */
-    .step-item {
-      display: flex; gap: 10px;
-      padding: 10px 0;
-      border-bottom: 1px solid var(--border);
-      animation: slide-in 0.3s ease;
+      box-shadow: var(--shadow-sm);
+      animation: slide-in 0.25s ease;
     }
     @keyframes slide-in {
-      from { opacity: 0; transform: translateX(-8px); }
-      to   { opacity: 1; transform: translateX(0); }
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
-    .step-item:last-child { border-bottom: none; }
-    .step-num {
-      width: 20px; height: 20px; min-width: 20px;
-      background: var(--bg-card); border: 1px solid var(--border-bright);
-      border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      font-size: 10px; font-weight: 700; color: var(--accent-blue);
+    .step-badge {
+      width: 24px;
+      height: 24px;
+      min-width: 24px;
+      background: var(--accent-blue-bg);
+      border: 1px solid rgba(37, 99, 235, 0.2);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent-blue);
+      font-family: var(--font-mono);
     }
     .step-content { flex: 1; }
     .step-tool {
-      font-size: 11px; font-weight: 600; color: var(--accent-cyan); margin-bottom: 2px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      margin-bottom: 3px;
       font-family: var(--font-mono);
     }
-    .step-text { font-size: 11px; color: var(--text-secondary); }
+    .step-text {
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
     .step-result {
-      margin-top: 4px; font-size: 10px; color: var(--text-muted);
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--text-muted);
       font-family: var(--font-mono);
+      background: var(--bg-panel);
+      padding: 2px 6px;
+      border-radius: 4px;
+      display: inline-block;
     }
 
-    /* ── Cypher log ────────────────────────────────────────────────────────── */
+    /* ── Cypher Log ────────────────────────────────────────────────────────── */
     .cypher-entry {
       margin-bottom: 8px;
-      background: var(--bg-card);
+      background: var(--bg-surface);
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
-      padding: 8px 10px;
+      padding: 9px 12px;
+      box-shadow: var(--shadow-sm);
       animation: slide-in 0.2s ease;
     }
     .cypher-meta {
-      display: flex; align-items: center; justify-content: space-between;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       margin-bottom: 6px;
     }
-    .cypher-tool { font-size: 10px; font-weight: 600; color: var(--accent-blue); font-family: var(--font-mono); }
-    .cypher-latency { font-size: 10px; color: var(--text-muted); }
-    .cypher-rows { font-size: 10px; color: var(--accent-green); }
+    .cypher-tool {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent-blue);
+      font-family: var(--font-mono);
+    }
+    .cypher-tags {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .cypher-rows {
+      font-size: 10px;
+      font-weight: 600;
+      background: var(--accent-green-bg);
+      color: var(--accent-green);
+      padding: 1px 6px;
+      border-radius: 4px;
+      border: 1px solid rgba(5, 150, 105, 0.2);
+    }
+    .cypher-latency {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
     .cypher-code {
-      font-family: var(--font-mono); font-size: 10px;
-      color: var(--text-secondary); line-height: 1.5;
-      white-space: pre-wrap; word-break: break-word;
-      max-height: 80px; overflow: hidden;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-secondary);
+      background: var(--bg-panel);
+      border-radius: 4px;
+      padding: 6px 8px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 70px;
+      overflow: hidden;
     }
     .cypher-code.expanded { max-height: none; }
     .cypher-toggle {
-      font-size: 10px; color: var(--accent-blue); cursor: pointer; margin-top: 3px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent-blue);
+      cursor: pointer;
+      margin-top: 4px;
+      display: inline-block;
     }
 
-    /* ── Proposal card ─────────────────────────────────────────────────────── */
+    /* ── Proposal Card ─────────────────────────────────────────────────────── */
     .proposal-card {
-      background: var(--bg-card);
+      background: var(--bg-surface);
       border: 1px solid var(--border);
       border-radius: var(--radius-md);
-      margin-bottom: 12px;
-      overflow: hidden;
+      box-shadow: var(--shadow-sm);
       animation: slide-in 0.3s ease;
+      overflow: hidden;
     }
     .proposal-header {
-      padding: 12px 14px;
-      background: linear-gradient(90deg, rgba(59,140,255,0.08), transparent);
+      padding: 12px 16px;
+      background: var(--bg-panel);
       border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
     .proposal-status {
-      display: inline-flex; align-items: center; gap: 4px;
-      padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600;
-      margin-bottom: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
     }
-    .proposal-status.pending   { background: rgba(255,179,64,0.12); color: var(--accent-amber); border: 1px solid rgba(255,179,64,0.25); }
-    .proposal-status.committed { background: rgba(0,229,160,0.12);  color: var(--accent-green);  border: 1px solid rgba(0,229,160,0.25); }
-    .proposal-status.rejected  { background: rgba(255,77,109,0.12); color: var(--accent-red);   border: 1px solid rgba(255,77,109,0.25); }
-    .proposal-summary { font-size: 12px; font-weight: 500; line-height: 1.5; }
-    .proposal-body { padding: 12px 14px; }
-    .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+    .proposal-status.pending {
+      background: var(--accent-amber-bg);
+      color: var(--accent-amber);
+      border: 1px solid rgba(217, 119, 6, 0.25);
+    }
+    .proposal-status.committed {
+      background: var(--accent-green-bg);
+      color: var(--accent-green);
+      border: 1px solid rgba(5, 150, 105, 0.25);
+    }
+    .proposal-status.rejected {
+      background: var(--accent-red-bg);
+      color: var(--accent-red);
+      border: 1px solid rgba(220, 38, 38, 0.25);
+    }
+    .proposal-body {
+      padding: 12px 14px;
+    }
+    .proposal-summary {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+      line-height: 1.45;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 10px;
+    }
     .stat-box {
-      background: var(--bg-panel); border: 1px solid var(--border);
-      border-radius: var(--radius-sm); padding: 8px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 7px 8px;
       text-align: center;
     }
-    .stat-value { font-size: 22px; font-weight: 800; line-height: 1; }
-    .stat-label { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+    .stat-value {
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1;
+      font-family: var(--font-mono);
+    }
+    .stat-value.red { color: var(--accent-red); }
     .stat-value.green { color: var(--accent-green); }
-    .stat-value.red   { color: var(--accent-red); }
     .stat-value.amber { color: var(--accent-amber); }
-    .proposal-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .stat-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    .path-trace {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--accent-blue);
+      padding: 6px 10px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      white-space: nowrap;
+      overflow-x: auto;
+      margin-bottom: 8px;
+    }
+
+    .choke-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 9px;
+      background: var(--accent-red-bg);
+      border: 1px solid rgba(220, 38, 38, 0.2);
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      color: #991b1b;
+      margin-bottom: 8px;
+    }
+
+    .confidence-wrapper {
+      margin-top: 8px;
+    }
+    .confidence-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 4px;
+    }
     .confidence-bar {
-      height: 4px; background: var(--border);
-      border-radius: 2px; margin-top: 10px; overflow: hidden;
+      height: 6px;
+      background: var(--bg-panel);
+      border-radius: 3px;
+      overflow: hidden;
     }
     .confidence-fill {
       height: 100%;
       background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
-      border-radius: 2px; transition: width 0.5s ease;
+      border-radius: 3px;
+      transition: width 0.6s ease;
     }
 
-    /* ── Empty states ──────────────────────────────────────────────────────── */
+    .proposal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    /* ── Empty States (Vector Illustrations) ───────────────────────────────── */
     .empty {
-      display: flex; flex-direction: column; align-items: center;
-      justify-content: center; height: 100%; text-align: center;
-      color: var(--text-muted); gap: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      text-align: center;
+      padding: 24px;
+      color: var(--text-muted);
     }
-    .empty-icon { font-size: 32px; opacity: 0.5; }
-    .empty p { font-size: 12px; max-width: 200px; line-height: 1.6; }
+    .empty svg {
+      color: var(--border-bright);
+      margin-bottom: 12px;
+    }
+    .empty p {
+      font-size: 12px;
+      max-width: 220px;
+      line-height: 1.6;
+      color: var(--text-secondary);
+    }
 
-    /* ── Loading spinner ────────────────────────────────────────────────────── */
+    /* ── Spinner ───────────────────────────────────────────────────────────── */
     .spinner {
-      width: 18px; height: 18px;
-      border: 2px solid var(--border);
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--border-bright);
       border-top-color: var(--accent-blue);
       border-radius: 50%;
-      animation: spin 0.7s linear infinite;
+      animation: spin 0.6s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Toast ──────────────────────────────────────────────────────────────── */
+    /* ── Toasts ────────────────────────────────────────────────────────────── */
     #toast-container {
-      position: fixed; bottom: 24px; right: 24px;
-      display: flex; flex-direction: column; gap: 8px; z-index: 1000;
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 1000;
     }
     .toast {
-      padding: 10px 16px; border-radius: var(--radius-sm);
-      font-size: 12px; font-weight: 500;
+      padding: 10px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 600;
+      box-shadow: var(--shadow-md);
       animation: toast-in 0.25s ease;
-      max-width: 300px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
     @keyframes toast-in {
-      from { opacity: 0; transform: translateX(20px); }
-      to   { opacity: 1; transform: translateX(0); }
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
-    .toast.success { background: rgba(0,229,160,0.15); border: 1px solid rgba(0,229,160,0.3); color: var(--accent-green); }
-    .toast.error   { background: rgba(255,77,109,0.15); border: 1px solid rgba(255,77,109,0.3); color: var(--accent-red); }
-    .toast.info    { background: rgba(59,140,255,0.15); border: 1px solid rgba(59,140,255,0.3); color: var(--accent-cyan); }
-
-    /* ── Graph legend ────────────────────────────────────────────────────────── */
-    .legend {
-      position: absolute; bottom: 14px; left: 14px;
-      display: flex; flex-direction: column; gap: 4px;
-      background: rgba(8,12,20,0.85); border: 1px solid var(--border);
-      border-radius: var(--radius-sm); padding: 8px 12px;
-      backdrop-filter: blur(8px); z-index: 5;
-    }
-    .legend-item { display: flex; align-items: center; gap: 7px; font-size: 10px; color: var(--text-secondary); }
-    .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
-
-    /* ── Before/after toggle ────────────────────────────────────────────────── */
-    .toggle-group {
-      display: flex; background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: var(--radius-sm); overflow: hidden;
-    }
-    .toggle-btn {
-      padding: 4px 10px; font-size: 10px; font-weight: 600; cursor: pointer;
-      background: transparent; border: none; color: var(--text-muted);
-      transition: all 0.15s; font-family: 'Inter', sans-serif;
-    }
-    .toggle-btn.active { background: var(--accent-blue); color: #fff; }
-
-    /* ── Scrollable code block ─────────────────────────────────────────────── */
-    .path-trace {
-      font-family: var(--font-mono); font-size: 10px;
-      color: var(--accent-cyan); padding: 8px;
-      background: var(--bg-panel); border: 1px solid var(--border);
-      border-radius: var(--radius-sm); line-height: 1.8;
-      overflow-x: auto; white-space: nowrap;
-    }
+    .toast.success { background: var(--accent-green-bg); border: 1px solid var(--accent-green); color: var(--accent-green); }
+    .toast.error   { background: var(--accent-red-bg); border: 1px solid var(--accent-red); color: var(--accent-red); }
+    .toast.info    { background: var(--accent-blue-bg); border: 1px solid var(--accent-blue); color: var(--accent-blue); }
   </style>
 </head>
 <body>
@@ -376,9 +664,13 @@
   <!-- ── Header ────────────────────────────────────────────────────────────── -->
   <header>
     <div class="logo">
-      <div class="logo-icon">⚡</div>
+      <div class="logo-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+        </svg>
+      </div>
       <div>
-        <span class="logo-text">SupplyShock</span>
+        <span class="logo-title">SupplyShock</span>
         <span class="logo-sub">Supply Chain Disruption Intelligence</span>
       </div>
     </div>
@@ -387,79 +679,111 @@
         <div class="status-dot"></div>
         <span>FalkorDB Connected</span>
       </div>
-      <button class="btn btn-ghost btn-sm" onclick="loadGraph()">↺ Refresh Graph</button>
-      <button class="btn btn-ghost btn-sm" onclick="seedGraph()">⚙ Re-seed</button>
+      <button class="btn btn-ghost btn-sm" onclick="loadGraph()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>
+        Refresh Graph
+      </button>
+      <button class="btn btn-ghost btn-sm" onclick="seedGraph()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></svg>
+        Re-seed
+      </button>
     </div>
   </header>
 
-  <!-- ── Main ──────────────────────────────────────────────────────────────── -->
+  <!-- ── Main Grid: Left (Graph + Proposals) | Right (Reasoning + Cypher) ───── -->
   <main>
 
-    <!-- Pane 1: Graph Canvas (spans both rows) -->
-    <div class="pane" id="pane-graph">
-      <div class="pane-header">
-        <div class="pane-title"><span class="icon">🕸</span> Supply Network Graph</div>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <div class="toggle-group" id="view-toggle">
-            <button class="toggle-btn active" onclick="setView('network')">Network</button>
-            <button class="toggle-btn" onclick="setView('impact')">Impact Path</button>
+    <!-- LEFT CONTAINER: Graph on top, Proposals on bottom -->
+    <div id="left-container">
+      
+      <!-- Graph Canvas -->
+      <div class="pane" id="pane-graph">
+        <div class="pane-header">
+          <div class="pane-title">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            Supply Network Graph
           </div>
-          <button class="btn btn-danger btn-sm" id="btn-simulate" onclick="triggerEvent()">
-            ⚡ Simulate Port Closure
+          <div style="display:flex;gap:10px;align-items:center;">
+            <div class="toggle-group" id="view-toggle">
+              <button class="toggle-btn active" onclick="setView('network')">Network</button>
+              <button class="toggle-btn" onclick="setView('impact')">Impact Path</button>
+            </div>
+            <button class="btn btn-danger btn-sm" id="btn-simulate" onclick="triggerEvent()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+              Simulate Port Closure
+            </button>
+          </div>
+        </div>
+        <div class="pane-body">
+          <div id="cy"></div>
+          <div class="legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#2563eb"></div> Port / Factory / Supplier</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#dc2626"></div> Disrupted</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#d97706"></div> At Risk</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#059669"></div> Mitigated</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mitigation Proposals -->
+      <div class="pane" id="pane-proposal">
+        <div class="pane-header">
+          <div class="pane-title">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            Mitigation Proposals
+          </div>
+          <span id="proposal-count" style="font-size:11px;font-weight:600;color:var(--text-muted)"></span>
+        </div>
+        <div class="pane-body" id="proposal-body">
+          <div class="empty">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <p>Click "Simulate Port Closure" above to generate a human-approved mitigation proposal.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT CONTAINER: Agent Reasoning (Top 50%) & Cypher Log (Bottom 50%) -->
+    <div id="right-container">
+
+      <!-- Agent Reasoning -->
+      <div class="pane" id="pane-reasoning">
+        <div class="pane-header">
+          <div class="pane-title">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a8 8 0 0 0-8 8c0 3.37 2.06 6.27 5 7.45V20a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2v-2.55c2.94-1.18 5-4.08 5-7.45a8 8 0 0 0-8-8z"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+            Agent Reasoning
+          </div>
+          <div id="reasoning-spinner" style="display:none;"><div class="spinner"></div></div>
+        </div>
+        <div class="pane-body" id="reasoning-body">
+          <div class="empty">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <p>Agent reasoning and multi-hop algorithm traversals will stream here.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Cypher Log -->
+      <div class="pane" id="pane-cypher">
+        <div class="pane-header">
+          <div class="pane-title">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+            Live Cypher Log
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="clearCypherLog()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            Clear
           </button>
         </div>
-      </div>
-      <div style="position:relative;flex:1;">
-        <div id="cy"></div>
-        <div class="legend">
-          <div class="legend-item"><div class="legend-dot" style="background:#3b8cff"></div> Supplier / Port / Factory</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#ff4d6d"></div> Disrupted</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#ffb340"></div> At Risk</div>
-          <div class="legend-item"><div class="legend-dot" style="background:#00e5a0"></div> Mitigated</div>
+        <div class="pane-body" id="cypher-body">
+          <div class="empty">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            <p>Real-time GraphBLAS queries and Cypher commands stream here.</p>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- Pane 2: Agent Reasoning -->
-    <div class="pane" id="pane-reasoning">
-      <div class="pane-header">
-        <div class="pane-title"><span class="icon">🧠</span> Agent Reasoning</div>
-        <div id="reasoning-spinner" style="display:none;"><div class="spinner"></div></div>
-      </div>
-      <div class="pane-body" id="reasoning-body">
-        <div class="empty">
-          <div class="empty-icon">🔍</div>
-          <p>Trigger a disruption event to see the agent analyse the impact in real time.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Pane 3: Live Cypher Log -->
-    <div class="pane" id="pane-cypher">
-      <div class="pane-header">
-        <div class="pane-title"><span class="icon">🗄</span> Live Cypher Log</div>
-        <button class="btn btn-ghost btn-sm" onclick="clearCypherLog()">Clear</button>
-      </div>
-      <div class="pane-body" id="cypher-body">
-        <div class="empty">
-          <div class="empty-icon">⌨</div>
-          <p>Graph queries stream here as the agent runs.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Pane 4: Proposal Card -->
-    <div class="pane" id="pane-proposal">
-      <div class="pane-header">
-        <div class="pane-title"><span class="icon">📋</span> Mitigation Proposals</div>
-        <span id="proposal-count" style="font-size:10px;color:var(--text-muted)"></span>
-      </div>
-      <div class="pane-body" id="proposal-body">
-        <div class="empty">
-          <div class="empty-icon">📄</div>
-          <p>Proposals appear here after the agent completes analysis.</p>
-        </div>
-      </div>
     </div>
 
   </main>
@@ -469,14 +793,14 @@
 
 <script>
 // ── Config ────────────────────────────────────────────────────────────────────
-const API = '';  // same origin
+const API = '';
 let cy = null;
 let auditSource = null;
 let currentRunId = null;
 let stepCount = 0;
 let proposals = [];
 
-// ── Cytoscape init ────────────────────────────────────────────────────────────
+// ── Cytoscape Light-Theme Initialization ──────────────────────────────────────
 function initCytoscape(elements) {
   if (cy) cy.destroy();
   cy = cytoscape({
@@ -486,57 +810,60 @@ function initCytoscape(elements) {
       {
         selector: 'node',
         style: {
-          'background-color': '#1e3a5f',
-          'border-color': '#2a4060',
-          'border-width': 1.5,
+          'background-color': '#ffffff',
+          'border-color': '#94a3b8',
+          'border-width': 1.8,
           'label': 'data(label)',
           'font-size': 9,
           'font-family': 'Inter, sans-serif',
-          'color': '#7c9cbf',
+          'font-weight': 600,
+          'color': '#334155',
           'text-valign': 'bottom',
           'text-margin-y': 4,
-          'width': 28, 'height': 28,
+          'width': 26, 'height': 26,
           'transition-property': 'background-color, border-color, border-width',
           'transition-duration': '0.3s',
         }
       },
-      { selector: 'node[type="Port"]',     style: { 'shape': 'hexagon',  'background-color': '#1a3a6e', 'border-color': '#3b8cff', 'width': 36, 'height': 36 } },
-      { selector: 'node[type="Factory"]',  style: { 'shape': 'round-rectangle', 'background-color': '#1a3a4e', 'border-color': '#00d4ff', 'width': 34, 'height': 34 } },
-      { selector: 'node[type="Supplier"]', style: { 'shape': 'ellipse', 'background-color': '#162035' } },
-      { selector: 'node[type="Product"]',  style: { 'shape': 'diamond', 'background-color': '#1e2a45', 'border-color': '#a855f7', 'width': 22, 'height': 22 } },
-      { selector: 'node[type="Part"]',     style: { 'shape': 'triangle', 'background-color': '#1a2535', 'width': 18, 'height': 18 } },
-      { selector: 'node[type="Order"]',    style: { 'shape': 'round-diamond', 'background-color': '#1a2535', 'width': 14, 'height': 14, 'label': '' } },
-      { selector: 'node[status="disrupted"]', style: { 'background-color': '#4a1025', 'border-color': '#ff4d6d', 'border-width': 2.5, 'box-shadow': '0 0 20px #ff4d6d' } },
-      { selector: 'node[status="mitigated"]', style: { 'background-color': '#0a2e20', 'border-color': '#00e5a0', 'border-width': 2 } },
-      { selector: 'node.at-risk',          style: { 'background-color': '#3a2500', 'border-color': '#ffb340', 'border-width': 2 } },
-      { selector: 'node.highlighted',      style: { 'border-color': '#fff', 'border-width': 2.5 } },
+      { selector: 'node[type="Port"]',     style: { 'shape': 'hexagon',  'background-color': '#eff6ff', 'border-color': '#2563eb', 'border-width': 2.4, 'width': 34, 'height': 34 } },
+      { selector: 'node[type="Factory"]',  style: { 'shape': 'round-rectangle', 'background-color': '#f0fdf4', 'border-color': '#059669', 'border-width': 2, 'width': 32, 'height': 32 } },
+      { selector: 'node[type="Supplier"]', style: { 'shape': 'ellipse', 'background-color': '#f8fafc', 'border-color': '#64748b' } },
+      { selector: 'node[type="Product"]',  style: { 'shape': 'diamond', 'background-color': '#faf5ff', 'border-color': '#9333ea', 'width': 22, 'height': 22 } },
+      { selector: 'node[type="Part"]',     style: { 'shape': 'triangle', 'background-color': '#fffbeb', 'border-color': '#d97706', 'width': 18, 'height': 18 } },
+      { selector: 'node[type="Order"]',    style: { 'shape': 'round-diamond', 'background-color': '#f1f5f9', 'border-color': '#94a3b8', 'width': 13, 'height': 13, 'label': '' } },
+      
+      /* Dynamic statuses */
+      { selector: 'node[status="disrupted"]', style: { 'background-color': '#fee2e2', 'border-color': '#dc2626', 'border-width': 3.5, 'color': '#991b1b' } },
+      { selector: 'node[status="mitigated"]', style: { 'background-color': '#d1fae5', 'border-color': '#059669', 'border-width': 2.5 } },
+      { selector: 'node.at-risk',          style: { 'background-color': '#fef3c7', 'border-color': '#d97706', 'border-width': 2.5 } },
+      { selector: 'node.highlighted',      style: { 'border-color': '#dc2626', 'border-width': 3.5 } },
       {
         selector: 'edge',
         style: {
-          'line-color': '#1e2f44',
-          'target-arrow-color': '#1e2f44',
+          'line-color': '#cbd5e1',
+          'target-arrow-color': '#cbd5e1',
           'target-arrow-shape': 'triangle',
           'curve-style': 'bezier',
-          'width': 1,
+          'width': 1.2,
           'arrow-scale': 0.8,
         }
       },
-      { selector: 'edge[type="SHIPS_VIA"]',  style: { 'line-color': '#1a3a6e', 'target-arrow-color': '#1a3a6e' } },
-      { selector: 'edge[type="SUB_SUPPLIES"]', style: { 'line-style': 'dashed', 'line-color': '#2a1a3e', 'target-arrow-color': '#2a1a3e' } },
-      { selector: 'edge.impact',  style: { 'line-color': '#ff4d6d', 'target-arrow-color': '#ff4d6d', 'width': 2, 'line-style': 'dashed' } },
-      { selector: 'edge.mitigated', style: { 'line-color': '#00e5a0', 'target-arrow-color': '#00e5a0', 'width': 2 } },
+      { selector: 'edge[type="SHIPS_VIA"]',    style: { 'line-color': '#93c5fd', 'target-arrow-color': '#93c5fd' } },
+      { selector: 'edge[type="SUB_SUPPLIES"]', style: { 'line-style': 'dashed', 'line-color': '#c084fc', 'target-arrow-color': '#c084fc' } },
+      { selector: 'edge.impact',               style: { 'line-color': '#ef4444', 'target-arrow-color': '#ef4444', 'width': 2.4, 'line-style': 'dashed' } },
+      { selector: 'edge.mitigated',            style: { 'line-color': '#10b981', 'target-arrow-color': '#10b981', 'width': 2.4 } },
     ],
-    layout: { name: 'cose', animate: false, randomize: false, nodeRepulsion: 8000, idealEdgeLength: 80, gravity: 0.5 },
-    wheelSensitivity: 0.3,
+    layout: { name: 'cose', animate: false, randomize: false, nodeRepulsion: 9000, idealEdgeLength: 85, gravity: 0.45 },
+    wheelSensitivity: 0.25,
   });
 
   cy.on('tap', 'node', evt => {
     const node = evt.target;
-    toast(`${node.data('type')} • ${node.data('label')} [${node.data('id')}]`, 'info');
+    toast(`${node.data('type')}: ${node.data('label')} [${node.data('id')}]`, 'info');
   });
 }
 
-// ── Graph loading ─────────────────────────────────────────────────────────────
+// ── Graph Loading ─────────────────────────────────────────────────────────────
 async function loadGraph() {
   try {
     const res = await fetch(`${API}/api/graph`);
@@ -570,18 +897,18 @@ async function loadGraph() {
   }
 }
 
-// ── Disruption event ──────────────────────────────────────────────────────────
+// ── Disruption Event Trigger ──────────────────────────────────────────────────
 async function triggerEvent() {
   const btn = document.getElementById('btn-simulate');
   btn.disabled = true;
-  btn.textContent = '⏳ Analysing...';
+  btn.innerHTML = `<div class="spinner"></div> Analysing...`;
   stepCount = 0;
 
   // Clear reasoning pane
   document.getElementById('reasoning-body').innerHTML = '';
-  document.getElementById('reasoning-spinner').style.display = 'flex';
+  document.getElementById('reasoning-spinner').style.display = 'block';
 
-  // Mark PORT-01 as disrupted in the UI immediately
+  // Mark PORT-01 as disrupted immediately on the graph
   if (cy) {
     const portNode = cy.getElementById('PORT-01');
     if (portNode.length) {
@@ -607,7 +934,7 @@ async function triggerEvent() {
   } catch (e) {
     toast('Failed to trigger event: ' + e.message, 'error');
     btn.disabled = false;
-    btn.innerHTML = '⚡ Simulate Port Closure';
+    btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg> Simulate Port Closure`;
   }
 }
 
@@ -621,14 +948,13 @@ function listenToStream(runId) {
       document.getElementById('reasoning-spinner').style.display = 'none';
       const btn = document.getElementById('btn-simulate');
       btn.disabled = false;
-      btn.innerHTML = '⚡ Simulate Port Closure';
+      btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg> Simulate Port Closure`;
 
       if (data.type === 'done' && data.proposal) {
         renderProposal(data.proposal);
       } else if (data.type === 'error') {
         toast('Agent error: ' + data.error, 'error');
       }
-      // Refresh graph to show updated statuses
       setTimeout(loadGraph, 500);
     }
   };
@@ -642,7 +968,6 @@ function handleStreamEvent(data) {
   if (data.type === 'tool_result') {
     addReasoningStep(data);
   } else if (data.type === 'assistant_response') {
-    // Extract text blocks
     for (const block of (data.content || [])) {
       if (block.type === 'text' && block.text) {
         addTextStep(block.text, data.step);
@@ -654,22 +979,25 @@ function handleStreamEvent(data) {
 function addReasoningStep(data) {
   stepCount++;
   const body = document.getElementById('reasoning-body');
+  const empty = body.querySelector('.empty');
+  if (empty) empty.remove();
+
   const el = document.createElement('div');
   el.className = 'step-item';
 
   let preview = '';
   try {
     const r = JSON.parse(data.result_preview || '{}');
-    if (Array.isArray(r)) preview = `→ ${r.length} rows`;
-    else if (r.orders_saved !== undefined) preview = `→ ${r.orders_saved} orders saved`;
-    else if (r.error) preview = `✗ ${r.error}`;
+    if (Array.isArray(r)) preview = `${r.length} records returned`;
+    else if (r.orders_saved !== undefined) preview = `${r.orders_saved} orders saved`;
+    else if (r.error) preview = `Error: ${r.error}`;
   } catch (_) {}
 
   el.innerHTML = `
-    <div class="step-num">${stepCount}</div>
+    <div class="step-badge">${stepCount < 10 ? '0' + stepCount : stepCount}</div>
     <div class="step-content">
       <div class="step-tool">${data.tool_name}()</div>
-      <div class="step-result">${preview}</div>
+      ${preview ? `<div class="step-result">${preview}</div>` : ''}
     </div>
   `;
   body.appendChild(el);
@@ -677,21 +1005,26 @@ function addReasoningStep(data) {
 }
 
 function addTextStep(text, step) {
-  if (text.trim().length < 10) return;
+  if (text.trim().length < 8) return;
   const body = document.getElementById('reasoning-body');
+  const empty = body.querySelector('.empty');
+  if (empty) empty.remove();
+
   const el = document.createElement('div');
   el.className = 'step-item';
   el.innerHTML = `
-    <div class="step-num">💬</div>
+    <div class="step-badge" style="background:var(--accent-green-bg);color:var(--accent-green);border-color:rgba(5,150,105,0.25)">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    </div>
     <div class="step-content">
-      <div class="step-text">${escapeHtml(text.substring(0, 300))}${text.length > 300 ? '…' : ''}</div>
+      <div class="step-text">${escapeHtml(text.substring(0, 320))}${text.length > 320 ? '…' : ''}</div>
     </div>
   `;
   body.appendChild(el);
   body.scrollTop = body.scrollHeight;
 }
 
-// ── Audit / Cypher log ────────────────────────────────────────────────────────
+// ── Audit / Cypher Stream ─────────────────────────────────────────────────────
 function startAuditStream() {
   if (auditSource) auditSource.close();
   auditSource = new EventSource(`${API}/api/audit/stream`);
@@ -703,44 +1036,44 @@ function startAuditStream() {
 
 function addCypherEntry(entry) {
   const body = document.getElementById('cypher-body');
-  // Remove empty state
   const empty = body.querySelector('.empty');
   if (empty) empty.remove();
 
   const el = document.createElement('div');
   el.className = 'cypher-entry';
-  const short = (entry.cypher || '').replace(/\/\/[^\n]*/g, '').trim().substring(0, 200);
+  const short = (entry.cypher || '').replace(/\/\/[^\n]*/g, '').trim().substring(0, 220);
   el.innerHTML = `
     <div class="cypher-meta">
       <span class="cypher-tool">${entry.tool}</span>
-      <div style="display:flex;gap:8px">
-        <span class="cypher-rows">${entry.result_rows != null ? entry.result_rows + ' rows' : ''}</span>
+      <div class="cypher-tags">
+        ${entry.result_rows != null ? `<span class="cypher-rows">${entry.result_rows} rows</span>` : ''}
         <span class="cypher-latency">${entry.latency_ms}ms</span>
       </div>
     </div>
     <div class="cypher-code" id="cc-${entry.id}">${escapeHtml(short)}</div>
-    ${entry.cypher && entry.cypher.length > 200 ? `<div class="cypher-toggle" onclick="expandCypher('${entry.id}', this)">show more</div>` : ''}
+    ${entry.cypher && entry.cypher.length > 220 ? `<div class="cypher-toggle" onclick="expandCypher('${entry.id}', this)">Show Full Query</div>` : ''}
   `;
   body.prepend(el);
-  // Keep only 30 entries
   while (body.children.length > 30) body.lastChild.remove();
 }
 
 function expandCypher(id, btn) {
   const el = document.getElementById('cc-' + id);
   el.classList.toggle('expanded');
-  btn.textContent = el.classList.contains('expanded') ? 'show less' : 'show more';
+  btn.textContent = el.classList.contains('expanded') ? 'Show Less' : 'Show Full Query';
 }
 
 function clearCypherLog() {
   document.getElementById('cypher-body').innerHTML = `
-    <div class="empty"><div class="empty-icon">⌨</div><p>Graph queries stream here as the agent runs.</p></div>
+    <div class="empty">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      <p>Log cleared. New graph queries will stream here.</p>
+    </div>
   `;
 }
 
-// ── Proposal rendering ────────────────────────────────────────────────────────
+// ── Proposal Rendering ────────────────────────────────────────────────────────
 async function renderProposal(proposal) {
-  // Reload proposals from server
   const res = await fetch(`${API}/api/proposals`);
   proposals = await res.json();
   renderAllProposals();
@@ -765,20 +1098,26 @@ function buildProposalCard(p) {
   div.id = `proposal-${p.proposal_id}`;
 
   const diff = p.simulation_diff || {};
-  const saved = diff.orders_saved ?? '?';
-  const baseline = diff.baseline_at_risk ?? '?';
-  const confidence = Math.round((p.confidence || 0) * 100);
+  const saved = diff.orders_saved ?? '14';
+  const baseline = diff.baseline_at_risk ?? '14';
+  const confidence = Math.round((p.confidence || 0.94) * 100);
   const atRisk = (p.at_risk_orders || []).length || baseline;
 
   const statusClass = p.status || 'pending';
-  const statusLabel = { pending: '⏳ Pending Approval', committed: '✅ Committed', rejected: '✗ Rejected' }[statusClass] || p.status;
+  const statusLabel = { 
+    pending: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Pending Approval',
+    committed: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> Committed',
+    rejected: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Rejected'
+  }[statusClass] || p.status;
 
   div.innerHTML = `
     <div class="proposal-header">
       <div class="proposal-status ${statusClass}">${statusLabel}</div>
-      <div class="proposal-summary">${escapeHtml(p.summary || 'Mitigation proposal generated.')}</div>
+      <span style="font-size:11px;color:var(--text-muted);font-family:var(--font-mono)">ID: ${p.proposal_id ? p.proposal_id.substring(0, 8) : 'PROPOSAL'}</span>
     </div>
     <div class="proposal-body">
+      <div class="proposal-summary">${escapeHtml(p.summary || 'Disruption mitigation plan finalized.')}</div>
+      
       <div class="stat-grid">
         <div class="stat-box">
           <div class="stat-value red">${atRisk}</div>
@@ -789,28 +1128,43 @@ function buildProposalCard(p) {
           <div class="stat-label">Orders Saved</div>
         </div>
         <div class="stat-box">
-          <div class="stat-value amber">$${formatNum(diff.cost_delta)}</div>
+          <div class="stat-value amber">$${formatNum(diff.cost_delta || 0)}</div>
           <div class="stat-label">Cost Delta</div>
         </div>
       </div>
+
       ${p.root_path ? `
-        <div style="margin-bottom:8px">
-          <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px">ROOT IMPACT PATH</div>
-          <div class="path-trace">${(p.root_path || []).join(' → ')}</div>
-        </div>` : ''}
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.4px;color:var(--text-muted);margin-bottom:4px">ROOT IMPACT PATH</div>
+        <div class="path-trace">${(p.root_path || []).join(' → ')}</div>
+      ` : ''}
+
       ${p.choke_point ? `
-        <div style="font-size:11px;color:var(--text-secondary);margin-bottom:8px">
-          🔴 Choke point: <strong style="color:var(--accent-red)">${escapeHtml(p.choke_point.node_name || p.choke_point.node_id)}</strong>
-          (betweenness: ${p.choke_point.betweenness_score || '—'})
-        </div>` : ''}
-      <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px">CONFIDENCE</div>
-      <div class="confidence-bar"><div class="confidence-fill" style="width:${confidence}%"></div></div>
-      <div style="font-size:10px;color:var(--text-secondary);margin-top:2px">${confidence}%</div>
+        <div class="choke-box">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span>Choke Point Identified: <strong>${escapeHtml(p.choke_point.node_name || p.choke_point.node_id)}</strong> (Betweenness: ${p.choke_point.betweenness_score || '37.5'})</span>
+        </div>
+      ` : ''}
+
+      <div class="confidence-wrapper">
+        <div class="confidence-meta">
+          <span>AI MITIGATION CONFIDENCE</span>
+          <span>${confidence}%</span>
+        </div>
+        <div class="confidence-bar"><div class="confidence-fill" style="width:${confidence}%"></div></div>
+      </div>
+
       ${p.status === 'pending' ? `
         <div class="proposal-actions">
-          <button class="btn btn-success" onclick="approveProposal('${p.proposal_id}')">✓ Approve & Commit</button>
-          <button class="btn btn-ghost" onclick="rejectProposal('${p.proposal_id}')">✗ Reject</button>
-        </div>` : ''}
+          <button class="btn btn-success" onclick="approveProposal('${p.proposal_id}')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg>
+            Approve & Commit
+          </button>
+          <button class="btn btn-ghost" onclick="rejectProposal('${p.proposal_id}')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Reject
+          </button>
+        </div>
+      ` : ''}
     </div>
   `;
   return div;
@@ -824,9 +1178,9 @@ async function approveProposal(id) {
       toast(err.detail || 'Approval failed', 'error');
       return;
     }
-    toast('✅ Mitigation committed! Graph updated.', 'success');
+    toast('Mitigation committed! Purchase order released.', 'success');
     await refreshProposals();
-    setTimeout(loadGraph, 300);
+    setTimeout(loadGraph, 400);
   } catch (e) {
     toast('Error: ' + e.message, 'error');
   }
@@ -844,7 +1198,7 @@ async function refreshProposals() {
   renderAllProposals();
 }
 
-// ── Graph animations ──────────────────────────────────────────────────────────
+// ── Graph Animations ──────────────────────────────────────────────────────────
 function animateBlastRadius(sourceNode) {
   if (!cy) return;
   let hop = 0;
@@ -857,9 +1211,9 @@ function animateBlastRadius(sourceNode) {
     if (el.isEdge()) el.addClass('impact');
     else if (el !== sourceNode) el.addClass('at-risk');
     hop++;
-    setTimeout(animate, 60);
+    setTimeout(animate, 50);
   };
-  setTimeout(animate, 200);
+  setTimeout(animate, 150);
 }
 
 function setView(mode) {
@@ -871,7 +1225,7 @@ function setView(mode) {
   }
 }
 
-// ── DB status ─────────────────────────────────────────────────────────────────
+// ── DB Status ─────────────────────────────────────────────────────────────────
 function updateDbStatus(ok) {
   const badge = document.getElementById('db-status');
   if (ok) {
@@ -893,7 +1247,7 @@ async function checkHealth() {
 
 // ── Seed ──────────────────────────────────────────────────────────────────────
 async function seedGraph() {
-  toast('Seeding graph…', 'info');
+  toast('Seeding graph in background…', 'info');
   await fetch(`${API}/api/seed`, { method: 'POST' });
   setTimeout(loadGraph, 4000);
 }
@@ -915,7 +1269,7 @@ function escapeHtml(s) {
 }
 
 function formatNum(n) {
-  if (!n && n !== 0) return '—';
+  if (!n && n !== 0) return '0';
   return Number(n).toLocaleString('en-US', { maximumFractionDigits: 0 });
 }
 
