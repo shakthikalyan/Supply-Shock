@@ -1,0 +1,39 @@
+services:
+  falkordb:
+    image: falkordb/falkordb:v4.3.0
+    container_name: supplyshock-falkordb
+    ports:
+      - "6379:6379"
+      - "3000:3000"
+    volumes:
+      - falkordb_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  app:
+    build: .
+    container_name: supplyshock-app
+    ports:
+      - "8000:8000"
+    environment:
+      - FALKORDB_HOST=falkordb
+      - FALKORDB_PORT=6379
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GRAPH_NAME=supplyshock
+    depends_on:
+      falkordb:
+        condition: service_healthy
+    volumes:
+      - ./app:/app/app
+      - ./queries:/app/queries
+      - ./seed:/app/seed
+      - ./web:/app/web
+      - ./audit_logs:/app/audit_logs
+    restart: unless-stopped
+
+volumes:
+  falkordb_data:

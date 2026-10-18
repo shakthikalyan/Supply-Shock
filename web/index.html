@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SupplyShock — Supply Chain Disruption Intelligence</title>
+  <meta name="description" content="AI-powered supply chain disruption mitigation platform. Real-time graph traversal, impact analysis, and human-approved actions via FalkorDB." />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Cytoscape.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.29.2/cytoscape.min.js"></script>
+
+  <style>
+    /* ── Design Tokens ─────────────────────────────────────────────────────── */
+    :root {
+      --bg-base:        #080c14;
+      --bg-surface:     #0d1420;
+      --bg-panel:       #111927;
+      --bg-card:        #162030;
+      --border:         #1e2f44;
+      --border-bright:  #2a4060;
+      --text-primary:   #e8f0fe;
+      --text-secondary: #7c9cbf;
+      --text-muted:     #3d5a78;
+      --accent-blue:    #3b8cff;
+      --accent-cyan:    #00d4ff;
+      --accent-green:   #00e5a0;
+      --accent-amber:   #ffb340;
+      --accent-red:     #ff4d6d;
+      --accent-purple:  #a855f7;
+      --glow-blue:      0 0 20px rgba(59,140,255,0.3);
+      --glow-red:       0 0 20px rgba(255,77,109,0.3);
+      --glow-green:     0 0 20px rgba(0,229,160,0.3);
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    /* ── Reset & Base ──────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; overflow: hidden; }
+    body {
+      background: var(--bg-base);
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 2px; }
+
+    /* ── Layout ────────────────────────────────────────────────────────────── */
+    #app {
+      display: grid;
+      grid-template-rows: 52px 1fr;
+      height: 100vh;
+    }
+
+    /* ── Header ────────────────────────────────────────────────────────────── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      z-index: 10;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 16px;
+      letter-spacing: -0.3px;
+    }
+    .logo-icon {
+      width: 28px; height: 28px;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+    }
+    .logo-text { background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .logo-sub { font-size: 11px; font-weight: 400; color: var(--text-muted); margin-left: 4px; -webkit-text-fill-color: var(--text-muted); }
+
+    .header-actions { display: flex; align-items: center; gap: 10px; }
+    .status-badge {
+      display: flex; align-items: center; gap: 6px;
+      padding: 4px 10px; border-radius: 20px;
+      font-size: 11px; font-weight: 500;
+      background: rgba(0,229,160,0.08); border: 1px solid rgba(0,229,160,0.2);
+      color: var(--accent-green);
+    }
+    .status-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent-green);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+    .status-badge.db-down {
+      background: rgba(255,77,109,0.08); border-color: rgba(255,77,109,0.2); color: var(--accent-red);
+    }
+    .status-badge.db-down .status-dot { background: var(--accent-red); animation: none; }
+
+    /* ── Main grid ─────────────────────────────────────────────────────────── */
+    main {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      grid-template-rows: 1fr 240px;
+      gap: 1px;
+      background: var(--border);
+      overflow: hidden;
+    }
+    .pane {
+      background: var(--bg-panel);
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+    .pane-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .pane-title {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.8px;
+      text-transform: uppercase; color: var(--text-secondary);
+      display: flex; align-items: center; gap: 7px;
+    }
+    .pane-title .icon { font-size: 14px; }
+    .pane-body { flex: 1; overflow-y: auto; overflow-x: hidden; padding: 14px; }
+
+    /* Graph pane spans both rows */
+    #pane-graph { grid-row: 1 / 3; }
+    #cy { width: 100%; height: 100%; background: transparent; }
+
+    /* ── Buttons ────────────────────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: var(--radius-sm);
+      font-size: 12px; font-weight: 600; cursor: pointer;
+      border: none; transition: all 0.15s ease;
+      font-family: 'Inter', sans-serif;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-blue), #2563eb);
+      color: #fff; box-shadow: 0 2px 12px rgba(59,140,255,0.3);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(59,140,255,0.5); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-danger {
+      background: linear-gradient(135deg, #ff4d6d, #dc2626);
+      color: #fff; box-shadow: 0 2px 12px rgba(255,77,109,0.3);
+    }
+    .btn-danger:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(255,77,109,0.5); }
+    .btn-success {
+      background: linear-gradient(135deg, var(--accent-green), #059669);
+      color: #fff; box-shadow: 0 2px 12px rgba(0,229,160,0.3);
+    }
+    .btn-success:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(0,229,160,0.5); }
+    .btn-ghost {
+      background: transparent; color: var(--text-secondary);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { border-color: var(--border-bright); color: var(--text-primary); }
+    .btn-sm { padding: 4px 10px; font-size: 11px; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+
+    /* ── Event trigger card ────────────────────────────────────────────────── */
+    .event-card {
+      margin-bottom: 14px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      transition: border-color 0.2s;
+    }
+    .event-card:hover { border-color: var(--border-bright); }
+    .event-card h3 { font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+    .event-card p { font-size: 11px; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.6; }
+    .event-tag {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600;
+      background: rgba(255,179,64,0.12); color: var(--accent-amber); border: 1px solid rgba(255,179,64,0.25);
+      margin-bottom: 10px;
+    }
+
+    /* ── Reasoning steps ───────────────────────────────────────────────────── */
+    .step-item {
+      display: flex; gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      animation: slide-in 0.3s ease;
+    }
+    @keyframes slide-in {
+      from { opacity: 0; transform: translateX(-8px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    .step-item:last-child { border-bottom: none; }
+    .step-num {
+      width: 20px; height: 20px; min-width: 20px;
+      background: var(--bg-card); border: 1px solid var(--border-bright);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700; color: var(--accent-blue);
+    }
+    .step-content { flex: 1; }
+    .step-tool {
+      font-size: 11px; font-weight: 600; color: var(--accent-cyan); margin-bottom: 2px;
+      font-family: var(--font-mono);
+    }
+    .step-text { font-size: 11px; color: var(--text-secondary); }
+    .step-result {
+      margin-top: 4px; font-size: 10px; color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    /* ── Cypher log ────────────────────────────────────────────────────────── */
+    .cypher-entry {
+      margin-bottom: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 8px 10px;
+      animation: slide-in 0.2s ease;
+    }
+    .cypher-meta {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 6px;
+    }
+    .cypher-tool { font-size: 10px; font-weight: 600; color: var(--accent-blue); font-family: var(--font-mono); }
+    .cypher-latency { font-size: 10px; color: var(--text-muted); }
+    .cypher-rows { font-size: 10px; color: var(--accent-green); }
+    .cypher-code {
+      font-family: var(--font-mono); font-size: 10px;
+      color: var(--text-secondary); line-height: 1.5;
+      white-space: pre-wrap; word-break: break-word;
+      max-height: 80px; overflow: hidden;
+    }
+    .cypher-code.expanded { max-height: none; }
+    .cypher-toggle {
+      font-size: 10px; color: var(--accent-blue); cursor: pointer; margin-top: 3px;
+    }
+
+    /* ── Proposal card ─────────────────────────────────────────────────────── */
+    .proposal-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      margin-bottom: 12px;
+      overflow: hidden;
+      animation: slide-in 0.3s ease;
+    }
+    .proposal-header {
+      padding: 12px 14px;
+      background: linear-gradient(90deg, rgba(59,140,255,0.08), transparent);
+      border-bottom: 1px solid var(--border);
+    }
+    .proposal-status {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .proposal-status.pending   { background: rgba(255,179,64,0.12); color: var(--accent-amber); border: 1px solid rgba(255,179,64,0.25); }
+    .proposal-status.committed { background: rgba(0,229,160,0.12);  color: var(--accent-green);  border: 1px solid rgba(0,229,160,0.25); }
+    .proposal-status.rejected  { background: rgba(255,77,109,0.12); color: var(--accent-red);   border: 1px solid rgba(255,77,109,0.25); }
+    .proposal-summary { font-size: 12px; font-weight: 500; line-height: 1.5; }
+    .proposal-body { padding: 12px 14px; }
+    .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+    .stat-box {
+      background: var(--bg-panel); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 8px;
+      text-align: center;
+    }
+    .stat-value { font-size: 22px; font-weight: 800; line-height: 1; }
+    .stat-label { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+    .stat-value.green { color: var(--accent-green); }
+    .stat-value.red   { color: var(--accent-red); }
+    .stat-value.amber { color: var(--accent-amber); }
+    .proposal-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .confidence-bar {
+      height: 4px; background: var(--border);
+      border-radius: 2px; margin-top: 10px; overflow: hidden;
+    }
+    .confidence-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+      border-radius: 2px; transition: width 0.5s ease;
+    }
+
+    /* ── Empty states ──────────────────────────────────────────────────────── */
+    .empty {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; height: 100%; text-align: center;
+      color: var(--text-muted); gap: 10px;
+    }
+    .empty-icon { font-size: 32px; opacity: 0.5; }
+    .empty p { font-size: 12px; max-width: 200px; line-height: 1.6; }
+
+    /* ── Loading spinner ────────────────────────────────────────────────────── */
+    .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent-blue);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Toast ──────────────────────────────────────────────────────────────── */
+    #toast-container {
+      position: fixed; bottom: 24px; right: 24px;
+      display: flex; flex-direction: column; gap: 8px; z-index: 1000;
+    }
+    .toast {
+      padding: 10px 16px; border-radius: var(--radius-sm);
+      font-size: 12px; font-weight: 500;
+      animation: toast-in 0.25s ease;
+      max-width: 300px;
+    }
+    @keyframes toast-in {
+      from { opacity: 0; transform: translateX(20px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    .toast.success { background: rgba(0,229,160,0.15); border: 1px solid rgba(0,229,160,0.3); color: var(--accent-green); }
+    .toast.error   { background: rgba(255,77,109,0.15); border: 1px solid rgba(255,77,109,0.3); color: var(--accent-red); }
+    .toast.info    { background: rgba(59,140,255,0.15); border: 1px solid rgba(59,140,255,0.3); color: var(--accent-cyan); }
+
+    /* ── Graph legend ────────────────────────────────────────────────────────── */
+    .legend {
+      position: absolute; bottom: 14px; left: 14px;
+      display: flex; flex-direction: column; gap: 4px;
+      background: rgba(8,12,20,0.85); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 8px 12px;
+      backdrop-filter: blur(8px); z-index: 5;
+    }
+    .legend-item { display: flex; align-items: center; gap: 7px; font-size: 10px; color: var(--text-secondary); }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+    /* ── Before/after toggle ────────────────────────────────────────────────── */
+    .toggle-group {
+      display: flex; background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); overflow: hidden;
+    }
+    .toggle-btn {
+      padding: 4px 10px; font-size: 10px; font-weight: 600; cursor: pointer;
+      background: transparent; border: none; color: var(--text-muted);
+      transition: all 0.15s; font-family: 'Inter', sans-serif;
+    }
+    .toggle-btn.active { background: var(--accent-blue); color: #fff; }
+
+    /* ── Scrollable code block ─────────────────────────────────────────────── */
+    .path-trace {
+      font-family: var(--font-mono); font-size: 10px;
+      color: var(--accent-cyan); padding: 8px;
+      background: var(--bg-panel); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); line-height: 1.8;
+      overflow-x: auto; white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ── Header ────────────────────────────────────────────────────────────── -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      <div>
+        <span class="logo-text">SupplyShock</span>
+        <span class="logo-sub">Supply Chain Disruption Intelligence</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="status-badge" id="db-status">
+        <div class="status-dot"></div>
+        <span>FalkorDB Connected</span>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="loadGraph()">↺ Refresh Graph</button>
+      <button class="btn btn-ghost btn-sm" onclick="seedGraph()">⚙ Re-seed</button>
+    </div>
+  </header>
+
+  <!-- ── Main ──────────────────────────────────────────────────────────────── -->
+  <main>
+
+    <!-- Pane 1: Graph Canvas (spans both rows) -->
+    <div class="pane" id="pane-graph">
+      <div class="pane-header">
+        <div class="pane-title"><span class="icon">🕸</span> Supply Network Graph</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <div class="toggle-group" id="view-toggle">
+            <button class="toggle-btn active" onclick="setView('network')">Network</button>
+            <button class="toggle-btn" onclick="setView('impact')">Impact Path</button>
+          </div>
+          <button class="btn btn-danger btn-sm" id="btn-simulate" onclick="triggerEvent()">
+            ⚡ Simulate Port Closure
+          </button>
+        </div>
+      </div>
+      <div style="position:relative;flex:1;">
+        <div id="cy"></div>
+        <div class="legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#3b8cff"></div> Supplier / Port / Factory</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#ff4d6d"></div> Disrupted</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#ffb340"></div> At Risk</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#00e5a0"></div> Mitigated</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pane 2: Agent Reasoning -->
+    <div class="pane" id="pane-reasoning">
+      <div class="pane-header">
+        <div class="pane-title"><span class="icon">🧠</span> Agent Reasoning</div>
+        <div id="reasoning-spinner" style="display:none;"><div class="spinner"></div></div>
+      </div>
+      <div class="pane-body" id="reasoning-body">
+        <div class="empty">
+          <div class="empty-icon">🔍</div>
+          <p>Trigger a disruption event to see the agent analyse the impact in real time.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pane 3: Live Cypher Log -->
+    <div class="pane" id="pane-cypher">
+      <div class="pane-header">
+        <div class="pane-title"><span class="icon">🗄</span> Live Cypher Log</div>
+        <button class="btn btn-ghost btn-sm" onclick="clearCypherLog()">Clear</button>
+      </div>
+      <div class="pane-body" id="cypher-body">
+        <div class="empty">
+          <div class="empty-icon">⌨</div>
+          <p>Graph queries stream here as the agent runs.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pane 4: Proposal Card -->
+    <div class="pane" id="pane-proposal">
+      <div class="pane-header">
+        <div class="pane-title"><span class="icon">📋</span> Mitigation Proposals</div>
+        <span id="proposal-count" style="font-size:10px;color:var(--text-muted)"></span>
+      </div>
+      <div class="pane-body" id="proposal-body">
+        <div class="empty">
+          <div class="empty-icon">📄</div>
+          <p>Proposals appear here after the agent completes analysis.</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+// ── Config ────────────────────────────────────────────────────────────────────
+const API = '';  // same origin
+let cy = null;
+let auditSource = null;
+let currentRunId = null;
+let stepCount = 0;
+let proposals = [];
+
+// ── Cytoscape init ────────────────────────────────────────────────────────────
+function initCytoscape(elements) {
+  if (cy) cy.destroy();
+  cy = cytoscape({
+    container: document.getElementById('cy'),
+    elements,
+    style: [
+      {
+        selector: 'node',
+        style: {
+          'background-color': '#1e3a5f',
+          'border-color': '#2a4060',
+          'border-width': 1.5,
+          'label': 'data(label)',
+          'font-size': 9,
+          'font-family': 'Inter, sans-serif',
+          'color': '#7c9cbf',
+          'text-valign': 'bottom',
+          'text-margin-y': 4,
+          'width': 28, 'height': 28,
+          'transition-property': 'background-color, border-color, border-width',
+          'transition-duration': '0.3s',
+        }
+      },
+      { selector: 'node[type="Port"]',     style: { 'shape': 'hexagon',  'background-color': '#1a3a6e', 'border-color': '#3b8cff', 'width': 36, 'height': 36 } },
+      { selector: 'node[type="Factory"]',  style: { 'shape': 'round-rectangle', 'background-color': '#1a3a4e', 'border-color': '#00d4ff', 'width': 34, 'height': 34 } },
+      { selector: 'node[type="Supplier"]', style: { 'shape': 'ellipse', 'background-color': '#162035' } },
+      { selector: 'node[type="Product"]',  style: { 'shape': 'diamond', 'background-color': '#1e2a45', 'border-color': '#a855f7', 'width': 22, 'height': 22 } },
+      { selector: 'node[type="Part"]',     style: { 'shape': 'triangle', 'background-color': '#1a2535', 'width': 18, 'height': 18 } },
+      { selector: 'node[type="Order"]',    style: { 'shape': 'round-diamond', 'background-color': '#1a2535', 'width': 14, 'height': 14, 'label': '' } },
+      { selector: 'node[status="disrupted"]', style: { 'background-color': '#4a1025', 'border-color': '#ff4d6d', 'border-width': 2.5, 'box-shadow': '0 0 20px #ff4d6d' } },
+      { selector: 'node[status="mitigated"]', style: { 'background-color': '#0a2e20', 'border-color': '#00e5a0', 'border-width': 2 } },
+      { selector: 'node.at-risk',          style: { 'background-color': '#3a2500', 'border-color': '#ffb340', 'border-width': 2 } },
+      { selector: 'node.highlighted',      style: { 'border-color': '#fff', 'border-width': 2.5 } },
+      {
+        selector: 'edge',
+        style: {
+          'line-color': '#1e2f44',
+          'target-arrow-color': '#1e2f44',
+          'target-arrow-shape': 'triangle',
+          'curve-style': 'bezier',
+          'width': 1,
+          'arrow-scale': 0.8,
+        }
+      },
+      { selector: 'edge[type="SHIPS_VIA"]',  style: { 'line-color': '#1a3a6e', 'target-arrow-color': '#1a3a6e' } },
+      { selector: 'edge[type="SUB_SUPPLIES"]', style: { 'line-style': 'dashed', 'line-color': '#2a1a3e', 'target-arrow-color': '#2a1a3e' } },
+      { selector: 'edge.impact',  style: { 'line-color': '#ff4d6d', 'target-arrow-color': '#ff4d6d', 'width': 2, 'line-style': 'dashed' } },
+      { selector: 'edge.mitigated', style: { 'line-color': '#00e5a0', 'target-arrow-color': '#00e5a0', 'width': 2 } },
+    ],
+    layout: { name: 'cose', animate: false, randomize: false, nodeRepulsion: 8000, idealEdgeLength: 80, gravity: 0.5 },
+    wheelSensitivity: 0.3,
+  });
+
+  cy.on('tap', 'node', evt => {
+    const node = evt.target;
+    toast(`${node.data('type')} • ${node.data('label')} [${node.data('id')}]`, 'info');
+  });
+}
+
+// ── Graph loading ─────────────────────────────────────────────────────────────
+async function loadGraph() {
+  try {
+    const res = await fetch(`${API}/api/graph`);
+    if (!res.ok) { updateDbStatus(false); return; }
+    const data = await res.json();
+    updateDbStatus(true);
+
+    const nodes = data.nodes.map(n => ({
+      data: {
+        id: n.node_id,
+        label: (n.name || n.node_id || '').substring(0, 14),
+        type: n.label || 'Unknown',
+        status: n.status || 'ok',
+        country: n.country || '',
+        tier: n.tier || '',
+      }
+    }));
+    const edges = data.edges.map((e, i) => ({
+      data: {
+        id: `e${i}`,
+        source: e.source, target: e.target,
+        type: e.rel_type || '',
+        status: e.status || 'ok',
+      }
+    }));
+
+    initCytoscape([...nodes, ...edges]);
+  } catch (e) {
+    updateDbStatus(false);
+    console.error('Graph load error:', e);
+  }
+}
+
+// ── Disruption event ──────────────────────────────────────────────────────────
+async function triggerEvent() {
+  const btn = document.getElementById('btn-simulate');
+  btn.disabled = true;
+  btn.textContent = '⏳ Analysing...';
+  stepCount = 0;
+
+  // Clear reasoning pane
+  document.getElementById('reasoning-body').innerHTML = '';
+  document.getElementById('reasoning-spinner').style.display = 'flex';
+
+  // Mark PORT-01 as disrupted in the UI immediately
+  if (cy) {
+    const portNode = cy.getElementById('PORT-01');
+    if (portNode.length) {
+      portNode.data('status', 'disrupted');
+      portNode.addClass('highlighted');
+      animateBlastRadius(portNode);
+    }
+  }
+
+  try {
+    const res = await fetch(`${API}/api/event`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'port_closure',
+        node_id: 'PORT-01',
+        description: 'Port of Shanghai (PORT-01) closed due to a major typhoon. All inbound and outbound cargo suspended.'
+      })
+    });
+    const { run_id } = await res.json();
+    currentRunId = run_id;
+    listenToStream(run_id);
+  } catch (e) {
+    toast('Failed to trigger event: ' + e.message, 'error');
+    btn.disabled = false;
+    btn.innerHTML = '⚡ Simulate Port Closure';
+  }
+}
+
+function listenToStream(runId) {
+  const es = new EventSource(`${API}/api/stream/${runId}`);
+  es.onmessage = (e) => {
+    const data = JSON.parse(e.data);
+    handleStreamEvent(data);
+    if (data.type === 'done' || data.type === 'error') {
+      es.close();
+      document.getElementById('reasoning-spinner').style.display = 'none';
+      const btn = document.getElementById('btn-simulate');
+      btn.disabled = false;
+      btn.innerHTML = '⚡ Simulate Port Closure';
+
+      if (data.type === 'done' && data.proposal) {
+        renderProposal(data.proposal);
+      } else if (data.type === 'error') {
+        toast('Agent error: ' + data.error, 'error');
+      }
+      // Refresh graph to show updated statuses
+      setTimeout(loadGraph, 500);
+    }
+  };
+  es.onerror = () => {
+    es.close();
+    document.getElementById('reasoning-spinner').style.display = 'none';
+  };
+}
+
+function handleStreamEvent(data) {
+  if (data.type === 'tool_result') {
+    addReasoningStep(data);
+  } else if (data.type === 'assistant_response') {
+    // Extract text blocks
+    for (const block of (data.content || [])) {
+      if (block.type === 'text' && block.text) {
+        addTextStep(block.text, data.step);
+      }
+    }
+  }
+}
+
+function addReasoningStep(data) {
+  stepCount++;
+  const body = document.getElementById('reasoning-body');
+  const el = document.createElement('div');
+  el.className = 'step-item';
+
+  let preview = '';
+  try {
+    const r = JSON.parse(data.result_preview || '{}');
+    if (Array.isArray(r)) preview = `→ ${r.length} rows`;
+    else if (r.orders_saved !== undefined) preview = `→ ${r.orders_saved} orders saved`;
+    else if (r.error) preview = `✗ ${r.error}`;
+  } catch (_) {}
+
+  el.innerHTML = `
+    <div class="step-num">${stepCount}</div>
+    <div class="step-content">
+      <div class="step-tool">${data.tool_name}()</div>
+      <div class="step-result">${preview}</div>
+    </div>
+  `;
+  body.appendChild(el);
+  body.scrollTop = body.scrollHeight;
+}
+
+function addTextStep(text, step) {
+  if (text.trim().length < 10) return;
+  const body = document.getElementById('reasoning-body');
+  const el = document.createElement('div');
+  el.className = 'step-item';
+  el.innerHTML = `
+    <div class="step-num">💬</div>
+    <div class="step-content">
+      <div class="step-text">${escapeHtml(text.substring(0, 300))}${text.length > 300 ? '…' : ''}</div>
+    </div>
+  `;
+  body.appendChild(el);
+  body.scrollTop = body.scrollHeight;
+}
+
+// ── Audit / Cypher log ────────────────────────────────────────────────────────
+function startAuditStream() {
+  if (auditSource) auditSource.close();
+  auditSource = new EventSource(`${API}/api/audit/stream`);
+  auditSource.onmessage = (e) => {
+    const entry = JSON.parse(e.data);
+    if (entry.cypher) addCypherEntry(entry);
+  };
+}
+
+function addCypherEntry(entry) {
+  const body = document.getElementById('cypher-body');
+  // Remove empty state
+  const empty = body.querySelector('.empty');
+  if (empty) empty.remove();
+
+  const el = document.createElement('div');
+  el.className = 'cypher-entry';
+  const short = (entry.cypher || '').replace(/\/\/[^\n]*/g, '').trim().substring(0, 200);
+  el.innerHTML = `
+    <div class="cypher-meta">
+      <span class="cypher-tool">${entry.tool}</span>
+      <div style="display:flex;gap:8px">
+        <span class="cypher-rows">${entry.result_rows != null ? entry.result_rows + ' rows' : ''}</span>
+        <span class="cypher-latency">${entry.latency_ms}ms</span>
+      </div>
+    </div>
+    <div class="cypher-code" id="cc-${entry.id}">${escapeHtml(short)}</div>
+    ${entry.cypher && entry.cypher.length > 200 ? `<div class="cypher-toggle" onclick="expandCypher('${entry.id}', this)">show more</div>` : ''}
+  `;
+  body.prepend(el);
+  // Keep only 30 entries
+  while (body.children.length > 30) body.lastChild.remove();
+}
+
+function expandCypher(id, btn) {
+  const el = document.getElementById('cc-' + id);
+  el.classList.toggle('expanded');
+  btn.textContent = el.classList.contains('expanded') ? 'show less' : 'show more';
+}
+
+function clearCypherLog() {
+  document.getElementById('cypher-body').innerHTML = `
+    <div class="empty"><div class="empty-icon">⌨</div><p>Graph queries stream here as the agent runs.</p></div>
+  `;
+}
+
+// ── Proposal rendering ────────────────────────────────────────────────────────
+async function renderProposal(proposal) {
+  // Reload proposals from server
+  const res = await fetch(`${API}/api/proposals`);
+  proposals = await res.json();
+  renderAllProposals();
+}
+
+function renderAllProposals() {
+  const body = document.getElementById('proposal-body');
+  const empty = body.querySelector('.empty');
+  if (empty) empty.remove();
+
+  document.getElementById('proposal-count').textContent = `${proposals.length} proposal${proposals.length !== 1 ? 's' : ''}`;
+
+  body.innerHTML = '';
+  for (const p of proposals.slice().reverse()) {
+    body.appendChild(buildProposalCard(p));
+  }
+}
+
+function buildProposalCard(p) {
+  const div = document.createElement('div');
+  div.className = 'proposal-card';
+  div.id = `proposal-${p.proposal_id}`;
+
+  const diff = p.simulation_diff || {};
+  const saved = diff.orders_saved ?? '?';
+  const baseline = diff.baseline_at_risk ?? '?';
+  const confidence = Math.round((p.confidence || 0) * 100);
+  const atRisk = (p.at_risk_orders || []).length || baseline;
+
+  const statusClass = p.status || 'pending';
+  const statusLabel = { pending: '⏳ Pending Approval', committed: '✅ Committed', rejected: '✗ Rejected' }[statusClass] || p.status;
+
+  div.innerHTML = `
+    <div class="proposal-header">
+      <div class="proposal-status ${statusClass}">${statusLabel}</div>
+      <div class="proposal-summary">${escapeHtml(p.summary || 'Mitigation proposal generated.')}</div>
+    </div>
+    <div class="proposal-body">
+      <div class="stat-grid">
+        <div class="stat-box">
+          <div class="stat-value red">${atRisk}</div>
+          <div class="stat-label">Orders at Risk</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value green">${saved}</div>
+          <div class="stat-label">Orders Saved</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value amber">$${formatNum(diff.cost_delta)}</div>
+          <div class="stat-label">Cost Delta</div>
+        </div>
+      </div>
+      ${p.root_path ? `
+        <div style="margin-bottom:8px">
+          <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px">ROOT IMPACT PATH</div>
+          <div class="path-trace">${(p.root_path || []).join(' → ')}</div>
+        </div>` : ''}
+      ${p.choke_point ? `
+        <div style="font-size:11px;color:var(--text-secondary);margin-bottom:8px">
+          🔴 Choke point: <strong style="color:var(--accent-red)">${escapeHtml(p.choke_point.node_name || p.choke_point.node_id)}</strong>
+          (betweenness: ${p.choke_point.betweenness_score || '—'})
+        </div>` : ''}
+      <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px">CONFIDENCE</div>
+      <div class="confidence-bar"><div class="confidence-fill" style="width:${confidence}%"></div></div>
+      <div style="font-size:10px;color:var(--text-secondary);margin-top:2px">${confidence}%</div>
+      ${p.status === 'pending' ? `
+        <div class="proposal-actions">
+          <button class="btn btn-success" onclick="approveProposal('${p.proposal_id}')">✓ Approve & Commit</button>
+          <button class="btn btn-ghost" onclick="rejectProposal('${p.proposal_id}')">✗ Reject</button>
+        </div>` : ''}
+    </div>
+  `;
+  return div;
+}
+
+async function approveProposal(id) {
+  try {
+    const res = await fetch(`${API}/api/proposals/${id}/approve`, { method: 'POST' });
+    if (!res.ok) {
+      const err = await res.json();
+      toast(err.detail || 'Approval failed', 'error');
+      return;
+    }
+    toast('✅ Mitigation committed! Graph updated.', 'success');
+    await refreshProposals();
+    setTimeout(loadGraph, 300);
+  } catch (e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+async function rejectProposal(id) {
+  await fetch(`${API}/api/proposals/${id}/reject`, { method: 'POST' });
+  toast('Proposal rejected.', 'info');
+  await refreshProposals();
+}
+
+async function refreshProposals() {
+  const res = await fetch(`${API}/api/proposals`);
+  proposals = await res.json();
+  renderAllProposals();
+}
+
+// ── Graph animations ──────────────────────────────────────────────────────────
+function animateBlastRadius(sourceNode) {
+  if (!cy) return;
+  let hop = 0;
+  const bfs = cy.elements().bfs({ roots: sourceNode, directed: false });
+  const visited = bfs.path;
+
+  const animate = () => {
+    if (hop >= visited.length) return;
+    const el = visited[hop];
+    if (el.isEdge()) el.addClass('impact');
+    else if (el !== sourceNode) el.addClass('at-risk');
+    hop++;
+    setTimeout(animate, 60);
+  };
+  setTimeout(animate, 200);
+}
+
+function setView(mode) {
+  document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  if (mode === 'network') {
+    cy && cy.elements().removeClass('impact at-risk highlighted');
+    cy && cy.layout({ name: 'cose', animate: true, animationDuration: 400 }).run();
+  }
+}
+
+// ── DB status ─────────────────────────────────────────────────────────────────
+function updateDbStatus(ok) {
+  const badge = document.getElementById('db-status');
+  if (ok) {
+    badge.className = 'status-badge';
+    badge.innerHTML = '<div class="status-dot"></div><span>FalkorDB Connected</span>';
+  } else {
+    badge.className = 'status-badge db-down';
+    badge.innerHTML = '<div class="status-dot"></div><span>FalkorDB Unavailable</span>';
+  }
+}
+
+async function checkHealth() {
+  try {
+    const res = await fetch(`${API}/health`);
+    const data = await res.json();
+    updateDbStatus(data.falkordb);
+  } catch (_) { updateDbStatus(false); }
+}
+
+// ── Seed ──────────────────────────────────────────────────────────────────────
+async function seedGraph() {
+  toast('Seeding graph…', 'info');
+  await fetch(`${API}/api/seed`, { method: 'POST' });
+  setTimeout(loadGraph, 4000);
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function toast(msg, type = 'info') {
+  const c = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  c.appendChild(el);
+  setTimeout(() => el.remove(), 4000);
+}
+
+function escapeHtml(s) {
+  return String(s || '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function formatNum(n) {
+  if (!n && n !== 0) return '—';
+  return Number(n).toLocaleString('en-US', { maximumFractionDigits: 0 });
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+(async () => {
+  await checkHealth();
+  await loadGraph();
+  startAuditStream();
+  await refreshProposals();
+  setInterval(checkHealth, 10000);
+})();
+</script>
+</body>
+</html>
