@@ -16,6 +16,7 @@ Planted surprise (the story):
 """
 
 import argparse
+import os
 import random
 import sys
 from datetime import date, timedelta
@@ -211,8 +212,22 @@ CUSTOMERS = [
 # ── Seeder class ─────────────────────────────────────────────────────────────
 
 class GraphSeeder:
-    def __init__(self, host: str, port: int, graph_name: str):
-        self.client = falkordb.FalkorDB(host=host, port=port)
+    def __init__(self, host: str, port: int, graph_name: str, password: str | None = None, username: str | None = None, url: str | None = None):
+        if url:
+            self.client = falkordb.FalkorDB.from_url(url)
+        else:
+            if ":" in str(host) and not str(host).startswith("["):
+                parts = host.split(":")
+                host = parts[0]
+                try:
+                    port = int(parts[1])
+                except ValueError:
+                    pass
+            kwargs = {"host": host, "port": port}
+            if password:
+                kwargs["password"] = password
+                kwargs["username"] = username or os.getenv("FALKORDB_USERNAME", "falkordb")
+            self.client = falkordb.FalkorDB(**kwargs)
         self.graph_name = graph_name
         self.graph = self.client.select_graph(graph_name)
 
@@ -547,15 +562,21 @@ def _split_shares(n: int) -> list[float]:
 
 def main():
     parser = argparse.ArgumentParser(description="SupplyShock graph seeder")
-    parser.add_argument("--host",  default="localhost")
-    parser.add_argument("--port",  type=int, default=6379)
-    parser.add_argument("--graph", default=GRAPH_NAME)
-    parser.add_argument("--wipe",  action="store_true",
+    parser.add_argument("--url",      default=os.getenv("FALKORDB_URL"))
+    parser.add_argument("--host",     default=os.getenv("FALKORDB_HOST", "localhost"))
+    parser.add_argument("--port",     type=int, default=int(os.getenv("FALKORDB_PORT", "6379")))
+    parser.add_argument("--username", default=os.getenv("FALKORDB_USERNAME", "falkordb"))
+    parser.add_argument("--password", default=os.getenv("FALKORDB_PASSWORD"))
+    parser.add_argument("--graph",    default=GRAPH_NAME)
+    parser.add_argument("--wipe",     action="store_true",
                         help="Delete existing graph before seeding")
     args = parser.parse_args()
 
-    print(f"Connecting to FalkorDB at {args.host}:{args.port} ...")
-    seeder = GraphSeeder(host=args.host, port=args.port, graph_name=args.graph)
+    if args.url:
+        print(f"Connecting to FalkorDB via URL ...")
+    else:
+        print(f"Connecting to FalkorDB at {args.host}:{args.port} ...")
+    seeder = GraphSeeder(host=args.host, port=args.port, graph_name=args.graph, password=args.password, username=args.username, url=args.url)
 
     if args.wipe:
         seeder.wipe()

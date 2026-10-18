@@ -208,15 +208,17 @@ async def get_outbox(proposal_id: str | None = None):
 async def seed_graph(background_tasks: BackgroundTasks, wipe: bool = True):
     """Re-seed the graph (for demo resets)."""
     def _seed():
-        import subprocess, sys
-        subprocess.run(
-            [sys.executable, "seed/generate.py",
-             "--host", os.getenv("FALKORDB_HOST", "localhost"),
-             "--port", os.getenv("FALKORDB_PORT", "6379"),
-             "--graph", graph.GRAPH_NAME,
-             *(["--wipe"] if wipe else [])],
-            check=True,
-        )
+        cmd = [
+            sys.executable, "seed/generate.py",
+            "--host", os.getenv("FALKORDB_HOST", "localhost"),
+            "--port", os.getenv("FALKORDB_PORT", "6379"),
+            "--graph", graph.GRAPH_NAME,
+        ]
+        if os.getenv("FALKORDB_PASSWORD"):
+            cmd.extend(["--password", os.getenv("FALKORDB_PASSWORD")])
+        if wipe:
+            cmd.append("--wipe")
+        subprocess.run(cmd, check=True)
     background_tasks.add_task(_seed)
     return {"status": "seeding started"}
 

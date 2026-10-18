@@ -14,8 +14,10 @@ import falkordb
 from app import audit
 
 # ── Config ────────────────────────────────────────────────────────────────────
+_URL = os.getenv("FALKORDB_URL")
 _HOST = os.getenv("FALKORDB_HOST", "localhost")
 _PORT = int(os.getenv("FALKORDB_PORT", "6379"))
+_PASSWORD = os.getenv("FALKORDB_PASSWORD")
 GRAPH_NAME = os.getenv("GRAPH_NAME", "supplyshock")
 QUERY_DIR = Path(__file__).parent.parent / "queries"
 
@@ -27,7 +29,23 @@ _graph: falkordb.Graph | None = None
 def _get_graph() -> falkordb.Graph:
     global _client, _graph
     if _graph is None:
-        _client = falkordb.FalkorDB(host=_HOST, port=_PORT)
+        if _URL:
+            _client = falkordb.FalkorDB.from_url(_URL)
+        else:
+            host = _HOST
+            port = _PORT
+            if ":" in str(host) and not str(host).startswith("["):
+                parts = host.split(":")
+                host = parts[0]
+                try:
+                    port = int(parts[1])
+                except ValueError:
+                    pass
+            kwargs: dict[str, Any] = {"host": host, "port": port}
+            if _PASSWORD:
+                kwargs["password"] = _PASSWORD
+                kwargs["username"] = os.getenv("FALKORDB_USERNAME", "falkordb")
+            _client = falkordb.FalkorDB(**kwargs)
         _graph = _client.select_graph(GRAPH_NAME)
     return _graph
 
@@ -178,4 +196,5 @@ def graph_delete(name: str):
 
 def select_graph_by_name(name: str) -> falkordb.Graph:
     """Return a Graph object for an arbitrary graph name."""
+    _get_graph()
     return _client.select_graph(name)
