@@ -74,12 +74,18 @@ def simulate_mitigation(change_set: dict) -> dict:
                 {"sid": new_supplier_id, "sku": part_sku},
             )
 
-        # 3. If alternate port, add SHIPS_VIA + mark old port as disrupted in copy
+        # 3. If alternate port, add SHIPS_VIA for new supplier and reroute affected suppliers
         if new_port_id and new_supplier_id:
             sim_graph.query(
                 "MATCH (s:Supplier {id: $sid}), (p:Port {id: $pid}) "
                 "MERGE (s)-[:SHIPS_VIA {transit_days: 5, status: 'simulated'}]->(p)",
                 {"sid": new_supplier_id, "pid": new_port_id},
+            )
+        if new_port_id and disrupted_node_id and str(disrupted_node_id).startswith("PORT"):
+            sim_graph.query(
+                "MATCH (s:Supplier)-[:SHIPS_VIA]->(oldP:Port {id: $old_pid}), (newP:Port {id: $new_pid}) "
+                "MERGE (s)-[:SHIPS_VIA {transit_days: 7, status: 'simulated'}]->(newP)",
+                {"old_pid": disrupted_node_id, "new_pid": new_port_id},
             )
 
         # 4. Re-run at-risk query on the simulation graph

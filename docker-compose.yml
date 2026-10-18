@@ -1,6 +1,6 @@
 services:
   falkordb:
-    image: falkordb/falkordb:v4.3.0
+    image: falkordb/falkordb:latest
     container_name: supplyshock-falkordb
     ports:
       - "6379:6379"
@@ -22,7 +22,8 @@ services:
     environment:
       - FALKORDB_HOST=falkordb
       - FALKORDB_PORT=6379
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}
       - GRAPH_NAME=supplyshock
     depends_on:
       falkordb:

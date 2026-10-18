@@ -1,23 +1,19 @@
 // check_reroute_capacity.cypher
-// Uses FalkorDB Max Flow to verify alternate routes can carry required volume.
+// Calculates end-to-end bottleneck capacity from candidate alternate suppliers to target factory.
+// Traverses Supplier -> Part -> Product <- Factory along with healthy Port routing.
 // Parameters: $factory_id (string), $required_qty (integer)
 
-// First, collect candidate alternate suppliers with their capacity
-MATCH (s:Supplier)-[sup:SUPPLIES]->(p:Part)-[:USED_IN]->(:Product)<-[:ASSEMBLES]-(f:Factory)
+MATCH (s:Supplier)-[sup:SUPPLIES]->(p:Part)-[:USED_IN]->(prod:Product)<-[:ASSEMBLES]-(f:Factory)
 WHERE f.id = $factory_id
   AND s.status <> 'disrupted'
-WITH s, sum(sup.capacity) AS total_capacity
-
-CALL algo.maxFlow({
-  sourceNodeIds: [s.id],
-  targetNodeIds: [$factory_id],
-  weightProperty: 'capacity',
-  relationshipTypes: ['SUPPLIES', 'SHIPS_VIA', 'ROUTES_TO']
-})
-YIELD maxFlow
+MATCH (s)-[:SHIPS_VIA]->(port:Port)-[route:ROUTES_TO]->(f)
+WHERE port.status <> 'disrupted'
+WITH s, CASE WHEN sup.capacity < route.capacity THEN sup.capacity ELSE route.capacity END AS flow
 RETURN
-  s.id        AS supplier_id,
-  s.name      AS supplier_name,
-  maxFlow,
-  $required_qty AS required_qty,
-  (maxFlow >= $required_qty) AS can_satisfy
+  s.id           AS supplier_id,
+  s.name         AS supplier_name,
+  max(flow)      AS maxFlow,
+  $required_qty  AS required_qty,
+  (max(flow) >= $required_qty) AS can_satisfy
+ORDER BY maxFlow DESC
+LIMIT 10

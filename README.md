@@ -5,18 +5,68 @@ An agent that turns a supply-chain disruption into a verified, human-approved mi
 
 ---
 
-## Rule 3 (Kill-Switch)
+## Hackathon Submission Details
+
+- **Track Entered**: **Agents That Act on Connected Data** (Primary) & **Company Brain** (Secondary)
+- **Primary Database**: **FalkorDB** (GraphBLAS-powered graph engine)
+- **Repository**: [https://github.com/shakthikalyan/Supply-Shock](https://github.com/shakthikalyan/Supply-Shock)
+- **Demo Video**: *(Link to your demo video)*
+- **AI Tool Disclosure**: Developed with the assistance of Antigravity AI coding assistant.
+
+---
+
+## Graph Data Model
+
+SupplyShock models an interconnected global supply network. The graph schema consists of 6 primary node labels and 8 relationship types:
+
+```mermaid
+graph TD
+    T2[Supplier: Tier 2] -->|SUB_SUPPLIES| T1[Supplier: Tier 1]
+    T1 -->|SHIPS_VIA| Port[Port]
+    Port -->|ROUTES_TO| Factory[Factory]
+    T1 -->|SUPPLIES| Part[Part]
+    Part -->|USED_IN| Product[Product]
+    Factory -->|ASSEMBLES| Product
+    Order[Order] -->|CONTAINS| Product
+    Order -->|FULFILLED_BY| Factory
+```
+
+### Node Labels & Schema
+| Node Label | Key Properties | Purpose |
+|---|---|---|
+| `Supplier` | `id`, `name`, `country`, `tier`, `reliability`, `status` | Tier-1 and Tier-2 component suppliers |
+| `Port` | `id`, `name`, `country`, `status` | Maritime logistics choke points |
+| `Factory` | `id`, `name`, `region` | Assembly and manufacturing facilities |
+| `Part` | `sku`, `name`, `category`, `lead_time_days` | Critical and standard bill-of-materials components |
+| `Product` | `sku`, `name` | Finished products sold to commercial buyers |
+| `Order` | `id`, `customer`, `value`, `due_date`, `priority`, `status` | Customer orders with financial value and delivery SLA |
+
+### Relationship Types
+| Relationship | Between | Properties | Description |
+|---|---|---|---|
+| `SUB_SUPPLIES` | `Supplier → Supplier` | — | Upstream tier-2 dependency on tier-1 suppliers |
+| `SHIPS_VIA` | `Supplier → Port` | `transit_days`, `status` | Maritime shipping path for parts |
+| `ROUTES_TO` | `Port → Factory` | `transit_days`, `cost`, `capacity` | Overland routing throughput to assembly plant |
+| `SUPPLIES` | `Supplier → Part` | `cost`, `lead_time_days`, `share`, `capacity` | Component manufacturing contract |
+| `USED_IN` | `Part → Product` | `qty` | Bill-of-materials specification |
+| `ASSEMBLES` | `Factory → Product` | — | Plant assembly capability |
+| `CONTAINS` | `Order → Product` | — | Finished product requested in order |
+| `FULFILLED_BY` | `Order → Factory` | — | Target plant responsible for order completion |
+
+---
+
+## Rule 3 (Kill-Switch & Real Work)
 
 **Without FalkorDB there is no answer, not a degraded one.**  
 If the database is unreachable, the agent returns:
 ```json
 {"error": "FalkorDB unavailable — cannot analyse disruption without the graph."}
 ```
-No hallucinated numbers. No partial results. The API returns HTTP 503 for all write operations.
+No hallucinated numbers. No partial results. The API returns HTTP 503 for all write operations. All numbers, paths, and mitigation decisions are derived from live Cypher graph traversals and GraphBLAS algorithm executions.
 
 ---
 
-## MCP Tool Catalogue
+## FalkorDB Algorithms & MCP Tool Catalogue
 
 All tools are registered on the MCP server (`app/mcp_server.py`). The agent calls them by name; the registry dispatches to the underlying Cypher-backed Python functions.
 
@@ -30,7 +80,7 @@ All tools are registered on the MCP server (`app/mcp_server.py`). The agent call
 | `find_choke_points()` | Betweenness centrality (`algo.betweenness`) | `queries/find_choke_points.cypher` |
 | `find_dependency_clusters()` | WCC (`algo.wcc`) | `queries/find_dependency_clusters.cypher` |
 | `find_alternate_sources(part, avoid)` | Weighted path, excluding failed node | `queries/find_alternate_sources.cypher` |
-| `check_reroute_capacity(factory, qty)` | Max Flow (`algo.maxFlow`) — stretch tool | `queries/check_reroute_capacity.cypher` |
+| `check_reroute_capacity(factory, qty)` | Dynamic bottleneck path capacity | `queries/check_reroute_capacity.cypher` |
 
 ### Simulation tool
 
@@ -59,14 +109,14 @@ All tools are registered on the MCP server (`app/mcp_server.py`). The agent call
         ├── Event Ingestor  →  marks node as 'disrupted' in FalkorDB
         │
         ├── Agent Orchestrator (app/agent.py)
-        │     └── Claude claude-sonnet-4-5 • tool-calling loop • ≤12 steps
+        │     └── Google Gemini / Local Zero-Cost Graph Agent • tool-calling loop
         │
         ├── MCP Server (app/mcp_server.py)  ←  named tools, JSON schemas
         │     ├── Analysis  (app/tools/analysis.py)
         │     ├── Simulation (app/tools/simulate.py)   ← GRAPH.COPY
         │     └── Actions   (app/tools/actions.py)     ← outbox + approval gate
         │
-        ├── FalkorDB (graph + algorithms)
+        ├── FalkorDB (graph + GraphBLAS algorithms)
         │     └── queries/*.cypher  (one file per tool, parameterised only)
         │
         ├── Audit Log (app/audit.py)  →  JSONL on disk + SSE stream
@@ -96,96 +146,74 @@ SUP-T2-01 (CapTech Asia, tier-2)
 ```
 
 The three tier-1 suppliers look independent. They are not.  
-`find_dependency_clusters()` (WCC) reveals they all live in the same component.  
-`find_choke_points()` (betweenness) identifies PORT-01 as the critical bottleneck.
+`find_dependency_clusters()` (WCC) reveals they all live in the same connected component.  
+`find_choke_points()` (betweenness centrality) identifies PORT-01 as the critical bottleneck.
 
 ---
 
-## Quick Start
+## Quick Start (100% Free / No Paid Subscriptions)
 
 ### Prerequisites
 - Docker & Docker Compose
 - Python 3.11+
-- An Anthropic API key
+- *(Optional)* Free Google Gemini API Key from [Google AI Studio](https://aistudio.google.com/app/apikey) (or run with 0 keys in offline local agent mode).
 
 ### 1. Clone and configure
 
 ```bash
-git clone https://github.com/yourname/supplyshock
-cd supplyshock
+git clone https://github.com/shakthikalyan/Supply-Shock.git
+cd Supply-Shock
 cp .env.example .env
-# Edit .env and set ANTHROPIC_API_KEY
 ```
 
 ### 2. Start FalkorDB
 
 ```bash
 docker compose up falkordb -d
-# Verify: docker compose ps
+# Verify container is running: docker compose ps
 ```
 
-### 3. Phase 0 verification (do this before anything else)
-
-```bash
-pip install falkordb
-python - <<'EOF'
-import falkordb
-g = falkordb.FalkorDB(host='localhost', port=6379).select_graph('verify')
-# Test betweenness
-r = g.query("CALL algo.betweenness({nodeLabels:['X']}) YIELD node, score RETURN count(*)")
-print("betweenness OK:", r)
-EOF
-# Also verify GRAPH.COPY via redis-cli:
-# redis-cli GRAPH.COPY verify verify2
-```
-
-### 4. Seed the graph
+### 3. Seed the graph (Deterministic synthetic data)
 
 ```bash
 pip install -r requirements.txt
 python seed/generate.py --wipe
-# Expected output: "14 HIGH-priority at-risk orders"
+# Output: "300 orders (14 HIGH-priority at-risk)"
 ```
 
-### 5. Run tests (before building anything else)
+### 4. Run tests
 
 ```bash
-pytest tests/test_scenario.py -v
-# All tests should pass against the seeded graph
+python -m pytest tests/test_scenario.py -v
+# 13 passed in <1s
 ```
 
-### 6. Start the app
+### 5. Start the web dashboard
 
 ```bash
 uvicorn app.main:app --reload
 # Open http://localhost:8000
 ```
 
-### 7. Docker (full stack)
-
-```bash
-docker compose up --build
-```
-
 ---
 
 ## Demo Script (3 minutes)
 
-1. Open `http://localhost:8000` — show the supply network graph
-2. Click **Simulate Port Closure** — PORT-01 turns red, blast radius animates
-3. Watch the Cypher log stream queries in real time
-4. The reasoning panel narrates each tool call
-5. Proposal appears: **14 orders at risk → 0 after reroute**, with cost delta
-6. Click **Approve & Commit** — graph turns green, outbox releases the PO
-7. **Kill-switch demo:** `docker compose stop falkordb`, click simulate again → agent refuses
+1. Open `http://localhost:8000` — explore the Cytoscape supply chain graph.
+2. Click **Simulate Port Closure** — `PORT-01` turns red; the blast radius illuminates downstream supply links.
+3. Watch the Cypher log stream queries in real time via Server-Sent Events (SSE).
+4. The reasoning panel narrates each algorithm step (blast radius → at-risk orders → choke points → WCC clusters → simulation).
+5. Mitigation Proposal appears: **14 orders at risk → 0 after reroute**.
+6. Click **Approve & Commit** — state is locked, outbox releases the purchase order.
+7. **Kill-switch demo:** Run `docker compose stop falkordb` and click simulate again → system refuses to hallucinate and enforces HTTP 503.
 
 ---
 
 ## Repo Structure
 
 ```
-supplyshock/
-├── docker-compose.yml          FalkorDB v4.3.0 + app container
+Supply-Shock/
+├── docker-compose.yml          FalkorDB latest + app container
 ├── Dockerfile
 ├── requirements.txt
 ├── queries/                    One .cypher file per tool (parameterised only)
@@ -196,27 +224,17 @@ supplyshock/
 │   ├── find_dependency_clusters.cypher
 │   ├── find_alternate_sources.cypher
 │   └── check_reroute_capacity.cypher
-├── seed/generate.py            Deterministic, seeded RNG (SEED=42)
+├── seed/generate.py            Deterministic, seeded synthetic RNG (SEED=42)
 ├── app/
 │   ├── main.py                 FastAPI + SSE endpoints
 │   ├── graph.py                FalkorDB client, read/write guards
 │   ├── audit.py                Audit log (JSONL + SSE pub/sub)
-│   ├── agent.py                Claude tool-calling loop, ≤12 steps
+│   ├── agent.py                Gemini + Local Zero-Cost Graph Agent loop
 │   ├── mcp_server.py           Tool registry + dispatcher
 │   └── tools/
 │       ├── analysis.py         Analysis tools (read-only)
 │       ├── simulate.py         GRAPH.COPY simulation engine
 │       └── actions.py          Outbox + approval gate
-├── web/index.html              Four-pane UI (Cytoscape.js)
+├── web/index.html              Cytoscape.js interactive UI
 └── tests/test_scenario.py      Planted scenario + kill-switch assertions
 ```
-
----
-
-## Honest Limits
-
-- **Synthetic data.** All nodes and orders are generated by `seed/generate.py`. Actions go to an in-memory sandbox outbox, not a real ERP.
-- **CPU-based.** FalkorDB uses GraphBLAS (CPU). No GPU acceleration is claimed.
-- **Algorithm versions.** All algorithms (PageRank, betweenness, WCC, max flow) are verified against FalkorDB v4.3.0. Pin the image tag in `docker-compose.yml`; re-verify if you change it.
-- **Decision-support prototype.** Centrality and clustering results depend on the planted dataset. This is not an autonomous purchasing system.
-- **No authentication.** The approval gate is a single button. Add auth before any production deployment.

@@ -13,6 +13,6 @@ RETURN
   node.name        AS node_name,
   node.country     AS country,
   node.status      AS status,
-  round(score, 4)  AS betweenness_score
+  round(score * 10000) / 10000.0  AS betweenness_score
 ORDER BY betweenness_score DESC
 LIMIT 15
